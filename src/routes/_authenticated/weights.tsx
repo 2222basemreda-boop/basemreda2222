@@ -10,7 +10,7 @@ import { PageHeader, Loading, EmptyState, GlassCard } from "@/components/farm/ui
 import { WeightDialog } from "@/components/farm/forms";
 
 export const Route = createFileRoute("/_authenticated/weights")({
-  head: () => ({ meta: [{ title: "الأوزان — مزرعة الإمام" }, { name: "description", content: "آخر الأوزان المسجلة لكل الماشية." }, { property: "og:title", content: "الأوزان — مزرعة الإمام" }, { property: "og:description", content: "آخر الأوزان المسجلة لكل الماشية." }] }),,
+  head: () => ({ meta: [{ title: "الأوزان — مزرعة الإمام" }, { name: "description", content: "آخر الأوزان المسجلة لكل الماشية." }, { property: "og:title", content: "الأوزان — مزرعة الإمام" }, { property: "og:description", content: "آخر الأوزان المسجلة لكل الماشية." }] }),
   component: WeightsPage,
 });
 

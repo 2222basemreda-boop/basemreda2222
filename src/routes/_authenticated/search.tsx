@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader, Loading, EmptyState, AnimalCard, NativeSelect } from "@/components/farm/ui";
 
 export const Route = createFileRoute("/_authenticated/search")({
-  head: () => ({ meta: [{ title: "البحث — مزرعة الإمام" }, { name: "description", content: "بحث سريع في الماشية برقم الحيوان أو العميل أو الكود أو الحظيرة." }, { property: "og:title", content: "البحث — مزرعة الإمام" }, { property: "og:description", content: "بحث سريع في الماشية برقم الحيوان أو العميل أو الكود أو الحظيرة." }] }),,
+  head: () => ({ meta: [{ title: "البحث — مزرعة الإمام" }, { name: "description", content: "بحث سريع في الماشية برقم الحيوان أو العميل أو الكود أو الحظيرة." }, { property: "og:title", content: "البحث — مزرعة الإمام" }, { property: "og:description", content: "بحث سريع في الماشية برقم الحيوان أو العميل أو الكود أو الحظيرة." }] }),
   component: SearchPage,
 });
 
