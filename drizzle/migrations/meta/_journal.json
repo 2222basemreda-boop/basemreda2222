@@ -8,6 +8,13 @@
       "when": 1789731800038,
       "tag": "0000_elemam_farm_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789734239145,
+      "tag": "0001_fix_log_activity_barn_id",
+      "breakpoints": true
     }
   ]
 }
