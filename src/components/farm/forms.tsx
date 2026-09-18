@@ -373,7 +373,7 @@ export function SaleDialog({ open, onOpenChange, animal, initial }: DialogProps 
   const animals = useAnimalOptions((a) => a.status !== "sold");
   const customers = useCustomerOptions();
   const up = (k: keyof typeof f) => (v: string | null) => setF((s) => ({ ...s, [k]: v }));
-  const total = toNum(f.weight) * toNum(f.price_per_kg);
+  const total = (toNum(f.weight) ?? 0) * (toNum(f.price_per_kg) ?? 0);
 
   // When the user picks an animal from the list, propose its current weight and linked customer (real data, editable).
   const pickAnimal = (id: string | null) => {
