@@ -7,7 +7,7 @@ import { fmtWeight, fmtDate, fmtNum, fmtMoney } from "@/lib/format";
 import { STATUS_LABELS } from "@/lib/labels";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { PageHeader, Loading, EmptyState, StatusBadge, PaymentBadge, GlassCard, SectionTitle } from "@/components/farm/ui";
+import { PageHeader, Loading, EmptyState, StatusBadge, PaymentBadge, GlassCard } from "@/components/farm/ui";
 import { AnimalDialog, WeightDialog, MoveBarnDialog, TreatmentDialog, SaleDialog, useDeleteRow } from "@/components/farm/forms";
 import { ConfirmDialog } from "@/components/farm/FormDialog";
 import { cn } from "@/lib/utils";
@@ -180,7 +180,6 @@ function AnimalDetail() {
         )}
       </div>
 
-      <SectionTitle>{" "}</SectionTitle>
 
       <AnimalDialog open={dlg === "edit"} onOpenChange={(o) => !o && setDlg(null)} initial={animal} />
       <WeightDialog open={dlg === "weight"} onOpenChange={(o) => !o && setDlg(null)} animalId={animal.id} />

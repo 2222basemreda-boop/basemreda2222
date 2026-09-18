@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAnimalsIndexRouteImport } from './routes/_authenticated/animals.index'
+import { Route as AuthenticatedAnimalsIdRouteImport } from './routes/_authenticated/animals.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,17 +41,24 @@ const AuthenticatedAnimalsIndexRoute =
     path: '/animals/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAnimalsIdRoute = AuthenticatedAnimalsIdRouteImport.update({
+  id: '/animals/$id',
+  path: '/animals/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/animals/': typeof AuthenticatedAnimalsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/animals': typeof AuthenticatedAnimalsIndexRoute
 }
 export interface FileRoutesById {
@@ -59,19 +67,21 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/_authenticated/animals/': typeof AuthenticatedAnimalsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/animals/'
+  fullPaths: '/' | '/auth' | '/dashboard' | '/animals/$id' | '/animals/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/animals'
+  to: '/' | '/auth' | '/dashboard' | '/animals/$id' | '/animals'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/dashboard'
+    | '/_authenticated/animals/$id'
     | '/_authenticated/animals/'
   fileRoutesById: FileRoutesById
 }
@@ -118,16 +128,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnimalsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/animals/$id': {
+      id: '/_authenticated/animals/$id'
+      path: '/animals/$id'
+      fullPath: '/animals/$id'
+      preLoaderRoute: typeof AuthenticatedAnimalsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedAnimalsIdRoute: typeof AuthenticatedAnimalsIdRoute
   AuthenticatedAnimalsIndexRoute: typeof AuthenticatedAnimalsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedAnimalsIdRoute: AuthenticatedAnimalsIdRoute,
   AuthenticatedAnimalsIndexRoute: AuthenticatedAnimalsIndexRoute,
 }
 
