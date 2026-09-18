@@ -18,6 +18,7 @@ import { Route as AuthenticatedAnimalsIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedBarnsIndexRouteImport } from './routes/_authenticated/barns.index'
 import { Route as AuthenticatedBarnsIdRouteImport } from './routes/_authenticated/barns.$id'
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
+import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -65,6 +66,12 @@ const AuthenticatedCustomersIndexRoute =
     path: '/customers/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCustomersIdRoute =
+  AuthenticatedCustomersIdRouteImport.update({
+    id: '/customers/$id',
+    path: '/customers/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
+  '/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/animals/': typeof AuthenticatedAnimalsIndexRoute
   '/barns/': typeof AuthenticatedBarnsIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
+  '/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/animals': typeof AuthenticatedAnimalsIndexRoute
   '/barns': typeof AuthenticatedBarnsIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
@@ -94,6 +103,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/_authenticated/barns/$id': typeof AuthenticatedBarnsIdRoute
+  '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/_authenticated/animals/': typeof AuthenticatedAnimalsIndexRoute
   '/_authenticated/barns/': typeof AuthenticatedBarnsIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/animals/$id'
     | '/barns/$id'
+    | '/customers/$id'
     | '/animals/'
     | '/barns/'
     | '/customers/'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/animals/$id'
     | '/barns/$id'
+    | '/customers/$id'
     | '/animals'
     | '/barns'
     | '/customers'
@@ -127,6 +139,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/animals/$id'
     | '/_authenticated/barns/$id'
+    | '/_authenticated/customers/$id'
     | '/_authenticated/animals/'
     | '/_authenticated/barns/'
     | '/_authenticated/customers/'
@@ -203,6 +216,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCustomersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/customers/$id': {
+      id: '/_authenticated/customers/$id'
+      path: '/customers/$id'
+      fullPath: '/customers/$id'
+      preLoaderRoute: typeof AuthenticatedCustomersIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -210,6 +230,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedAnimalsIdRoute: typeof AuthenticatedAnimalsIdRoute
   AuthenticatedBarnsIdRoute: typeof AuthenticatedBarnsIdRoute
+  AuthenticatedCustomersIdRoute: typeof AuthenticatedCustomersIdRoute
   AuthenticatedAnimalsIndexRoute: typeof AuthenticatedAnimalsIndexRoute
   AuthenticatedBarnsIndexRoute: typeof AuthenticatedBarnsIndexRoute
   AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
@@ -219,6 +240,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedAnimalsIdRoute: AuthenticatedAnimalsIdRoute,
   AuthenticatedBarnsIdRoute: AuthenticatedBarnsIdRoute,
+  AuthenticatedCustomersIdRoute: AuthenticatedCustomersIdRoute,
   AuthenticatedAnimalsIndexRoute: AuthenticatedAnimalsIndexRoute,
   AuthenticatedBarnsIndexRoute: AuthenticatedBarnsIndexRoute,
   AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
