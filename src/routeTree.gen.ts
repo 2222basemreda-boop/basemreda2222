@@ -17,6 +17,7 @@ import { Route as AuthenticatedAnimalsIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedAnimalsIdRouteImport } from './routes/_authenticated/animals.$id'
 import { Route as AuthenticatedBarnsIndexRouteImport } from './routes/_authenticated/barns.index'
 import { Route as AuthenticatedBarnsIdRouteImport } from './routes/_authenticated/barns.$id'
+import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +59,12 @@ const AuthenticatedBarnsIdRoute = AuthenticatedBarnsIdRouteImport.update({
   path: '/barns/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCustomersIndexRoute =
+  AuthenticatedCustomersIndexRouteImport.update({
+    id: '/customers/',
+    path: '/customers/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/animals/': typeof AuthenticatedAnimalsIndexRoute
   '/barns/': typeof AuthenticatedBarnsIndexRoute
+  '/customers/': typeof AuthenticatedCustomersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesByTo {
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/animals': typeof AuthenticatedAnimalsIndexRoute
   '/barns': typeof AuthenticatedBarnsIndexRoute
+  '/customers': typeof AuthenticatedCustomersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -87,6 +96,7 @@ export interface FileRoutesById {
   '/_authenticated/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/_authenticated/animals/': typeof AuthenticatedAnimalsIndexRoute
   '/_authenticated/barns/': typeof AuthenticatedBarnsIndexRoute
+  '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/barns/$id'
     | '/animals/'
     | '/barns/'
+    | '/customers/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/barns/$id'
     | '/animals'
     | '/barns'
+    | '/customers'
   id:
     | '__root__'
     | '/'
@@ -117,6 +129,7 @@ export interface FileRouteTypes {
     | '/_authenticated/barns/$id'
     | '/_authenticated/animals/'
     | '/_authenticated/barns/'
+    | '/_authenticated/customers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -183,6 +196,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBarnsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/customers/': {
+      id: '/_authenticated/customers/'
+      path: '/customers'
+      fullPath: '/customers/'
+      preLoaderRoute: typeof AuthenticatedCustomersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -192,6 +212,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBarnsIdRoute: typeof AuthenticatedBarnsIdRoute
   AuthenticatedAnimalsIndexRoute: typeof AuthenticatedAnimalsIndexRoute
   AuthenticatedBarnsIndexRoute: typeof AuthenticatedBarnsIndexRoute
+  AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -200,6 +221,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBarnsIdRoute: AuthenticatedBarnsIdRoute,
   AuthenticatedAnimalsIndexRoute: AuthenticatedAnimalsIndexRoute,
   AuthenticatedBarnsIndexRoute: AuthenticatedBarnsIndexRoute,
+  AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
