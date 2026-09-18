@@ -16,6 +16,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAnimalsIndexRouteImport } from './routes/_authenticated/animals.index'
 import { Route as AuthenticatedAnimalsIdRouteImport } from './routes/_authenticated/animals.$id'
 import { Route as AuthenticatedBarnsIndexRouteImport } from './routes/_authenticated/barns.index'
+import { Route as AuthenticatedBarnsIdRouteImport } from './routes/_authenticated/barns.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,12 +53,18 @@ const AuthenticatedBarnsIndexRoute = AuthenticatedBarnsIndexRouteImport.update({
   path: '/barns/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBarnsIdRoute = AuthenticatedBarnsIdRouteImport.update({
+  id: '/barns/$id',
+  path: '/barns/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
+  '/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/animals/': typeof AuthenticatedAnimalsIndexRoute
   '/barns/': typeof AuthenticatedBarnsIndexRoute
 }
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
+  '/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/animals': typeof AuthenticatedAnimalsIndexRoute
   '/barns': typeof AuthenticatedBarnsIndexRoute
 }
@@ -76,15 +84,29 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/animals/$id': typeof AuthenticatedAnimalsIdRoute
+  '/_authenticated/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/_authenticated/animals/': typeof AuthenticatedAnimalsIndexRoute
   '/_authenticated/barns/': typeof AuthenticatedBarnsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/dashboard' | '/animals/$id' | '/animals/' | '/barns/'
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/animals/$id'
+    | '/barns/$id'
+    | '/animals/'
+    | '/barns/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/animals/$id' | '/animals' | '/barns'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/animals/$id'
+    | '/barns/$id'
+    | '/animals'
+    | '/barns'
   id:
     | '__root__'
     | '/'
@@ -92,6 +114,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/dashboard'
     | '/_authenticated/animals/$id'
+    | '/_authenticated/barns/$id'
     | '/_authenticated/animals/'
     | '/_authenticated/barns/'
   fileRoutesById: FileRoutesById
@@ -153,12 +176,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBarnsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/barns/$id': {
+      id: '/_authenticated/barns/$id'
+      path: '/barns/$id'
+      fullPath: '/barns/$id'
+      preLoaderRoute: typeof AuthenticatedBarnsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedAnimalsIdRoute: typeof AuthenticatedAnimalsIdRoute
+  AuthenticatedBarnsIdRoute: typeof AuthenticatedBarnsIdRoute
   AuthenticatedAnimalsIndexRoute: typeof AuthenticatedAnimalsIndexRoute
   AuthenticatedBarnsIndexRoute: typeof AuthenticatedBarnsIndexRoute
 }
@@ -166,6 +197,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedAnimalsIdRoute: AuthenticatedAnimalsIdRoute,
+  AuthenticatedBarnsIdRoute: AuthenticatedBarnsIdRoute,
   AuthenticatedAnimalsIndexRoute: AuthenticatedAnimalsIndexRoute,
   AuthenticatedBarnsIndexRoute: AuthenticatedBarnsIndexRoute,
 }
