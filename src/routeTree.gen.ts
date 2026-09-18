@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedSalesRouteImport } from './routes/_authenticated/sales'
 import { Route as AuthenticatedAnimalsIndexRouteImport } from './routes/_authenticated/animals.index'
 import { Route as AuthenticatedAnimalsIdRouteImport } from './routes/_authenticated/animals.$id'
 import { Route as AuthenticatedBarnsIndexRouteImport } from './routes/_authenticated/barns.index'
@@ -37,6 +38,11 @@ const AuthRoute = AuthRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSalesRoute = AuthenticatedSalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAnimalsIndexRoute =
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/sales': typeof AuthenticatedSalesRoute
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/sales': typeof AuthenticatedSalesRoute
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/sales': typeof AuthenticatedSalesRoute
   '/_authenticated/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/_authenticated/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/sales'
     | '/animals/$id'
     | '/barns/$id'
     | '/customers/$id'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/sales'
     | '/animals/$id'
     | '/barns/$id'
     | '/customers/$id'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/dashboard'
+    | '/_authenticated/sales'
     | '/_authenticated/animals/$id'
     | '/_authenticated/barns/$id'
     | '/_authenticated/customers/$id'
@@ -179,6 +191,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sales': {
+      id: '/_authenticated/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof AuthenticatedSalesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/animals/': {
@@ -228,6 +247,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedSalesRoute: typeof AuthenticatedSalesRoute
   AuthenticatedAnimalsIdRoute: typeof AuthenticatedAnimalsIdRoute
   AuthenticatedBarnsIdRoute: typeof AuthenticatedBarnsIdRoute
   AuthenticatedCustomersIdRoute: typeof AuthenticatedCustomersIdRoute
@@ -238,6 +258,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedSalesRoute: AuthenticatedSalesRoute,
   AuthenticatedAnimalsIdRoute: AuthenticatedAnimalsIdRoute,
   AuthenticatedBarnsIdRoute: AuthenticatedBarnsIdRoute,
   AuthenticatedCustomersIdRoute: AuthenticatedCustomersIdRoute,
