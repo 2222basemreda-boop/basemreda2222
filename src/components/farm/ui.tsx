@@ -136,7 +136,7 @@ export function AnimalCard({ animal, compact }: { animal: AnimalRow; compact?: b
     <Link
       to="/animals/$id"
       params={{ id: animal.id }}
-      className="glass tap flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-white/80"
+      className="glass tap flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-popover/80"
     >
       <TagChip tag={animal.tag_number} status={animal.status} />
       <div className="min-w-0 flex-1">
