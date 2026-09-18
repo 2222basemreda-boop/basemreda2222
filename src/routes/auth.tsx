@@ -65,7 +65,7 @@ function LoginForm({ onDone }: { onDone: () => void }) {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (!email.trim() || !password) return toast.error("أدخل البريد الإلكتروني وكلمة المرور");
+    if (!email.trim() || !password) { toast.error("أدخل البريد الإلكتروني وكلمة المرور"); return; }
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setBusy(false);
@@ -101,9 +101,9 @@ function SetupForm({ onDone }: { onDone: () => void }) {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (f.fullName.trim().length < 2) return toast.error("أدخل الاسم الكامل");
-    if (!/.+@.+\..+/.test(f.email)) return toast.error("بريد إلكتروني غير صالح");
-    if (f.password.length < 6) return toast.error("كلمة المرور 6 أحرف على الأقل");
+    if (f.fullName.trim().length < 2) { toast.error("أدخل الاسم الكامل"); return; }
+    if (!/.+@.+\..+/.test(f.email)) { toast.error("بريد إلكتروني غير صالح"); return; }
+    if (f.password.length < 6) { toast.error("كلمة المرور 6 أحرف على الأقل"); return; }
     setBusy(true);
     try {
       await bootstrap({ data: { fullName: f.fullName.trim(), email: f.email.trim(), password: f.password } });

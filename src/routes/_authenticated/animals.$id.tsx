@@ -201,7 +201,7 @@ function AnimalDetail() {
   );
 }
 
-function Info({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string | null }) {
+function Info({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string | null | undefined }) {
   return (
     <div className="glass rounded-3xl p-4">
       <p className="text-xs text-muted-foreground">{label}</p>

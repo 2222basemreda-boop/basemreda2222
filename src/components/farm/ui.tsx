@@ -13,7 +13,7 @@ export function GlassCard({ className, children, ...rest }: { className?: string
   );
 }
 
-export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
+export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string | undefined; action?: ReactNode }) {
   return (
     <div className="mb-4 flex items-start justify-between gap-3">
       <div>
