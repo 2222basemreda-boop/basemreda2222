@@ -12,8 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedFeedingRouteImport } from './routes/_authenticated/feeding'
 import { Route as AuthenticatedSalesRouteImport } from './routes/_authenticated/sales'
+import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
+import { Route as AuthenticatedTreatmentsRouteImport } from './routes/_authenticated/treatments'
+import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
+import { Route as AuthenticatedWeightsRouteImport } from './routes/_authenticated/weights'
 import { Route as AuthenticatedAnimalsIndexRouteImport } from './routes/_authenticated/animals.index'
 import { Route as AuthenticatedAnimalsIdRouteImport } from './routes/_authenticated/animals.$id'
 import { Route as AuthenticatedBarnsIndexRouteImport } from './routes/_authenticated/barns.index'
@@ -35,14 +41,44 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFeedingRoute = AuthenticatedFeedingRouteImport.update({
+  id: '/feeding',
+  path: '/feeding',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSalesRoute = AuthenticatedSalesRouteImport.update({
   id: '/sales',
   path: '/sales',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTreatmentsRoute = AuthenticatedTreatmentsRouteImport.update({
+  id: '/treatments',
+  path: '/treatments',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedWeightsRoute = AuthenticatedWeightsRouteImport.update({
+  id: '/weights',
+  path: '/weights',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAnimalsIndexRoute =
@@ -82,8 +118,14 @@ const AuthenticatedCustomersIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/activity': typeof AuthenticatedActivityRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/feeding': typeof AuthenticatedFeedingRoute
   '/sales': typeof AuthenticatedSalesRoute
+  '/search': typeof AuthenticatedSearchRoute
+  '/treatments': typeof AuthenticatedTreatmentsRoute
+  '/users': typeof AuthenticatedUsersRoute
+  '/weights': typeof AuthenticatedWeightsRoute
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -94,8 +136,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/activity': typeof AuthenticatedActivityRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/feeding': typeof AuthenticatedFeedingRoute
   '/sales': typeof AuthenticatedSalesRoute
+  '/search': typeof AuthenticatedSearchRoute
+  '/treatments': typeof AuthenticatedTreatmentsRoute
+  '/users': typeof AuthenticatedUsersRoute
+  '/weights': typeof AuthenticatedWeightsRoute
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -108,8 +156,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/feeding': typeof AuthenticatedFeedingRoute
   '/_authenticated/sales': typeof AuthenticatedSalesRoute
+  '/_authenticated/search': typeof AuthenticatedSearchRoute
+  '/_authenticated/treatments': typeof AuthenticatedTreatmentsRoute
+  '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/_authenticated/weights': typeof AuthenticatedWeightsRoute
   '/_authenticated/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/_authenticated/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -122,8 +176,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/activity'
     | '/dashboard'
+    | '/feeding'
     | '/sales'
+    | '/search'
+    | '/treatments'
+    | '/users'
+    | '/weights'
     | '/animals/$id'
     | '/barns/$id'
     | '/customers/$id'
@@ -134,8 +194,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/activity'
     | '/dashboard'
+    | '/feeding'
     | '/sales'
+    | '/search'
+    | '/treatments'
+    | '/users'
+    | '/weights'
     | '/animals/$id'
     | '/barns/$id'
     | '/customers/$id'
@@ -147,8 +213,14 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/activity'
     | '/_authenticated/dashboard'
+    | '/_authenticated/feeding'
     | '/_authenticated/sales'
+    | '/_authenticated/search'
+    | '/_authenticated/treatments'
+    | '/_authenticated/users'
+    | '/_authenticated/weights'
     | '/_authenticated/animals/$id'
     | '/_authenticated/barns/$id'
     | '/_authenticated/customers/$id'
@@ -186,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/activity': {
+      id: '/_authenticated/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof AuthenticatedActivityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -193,11 +272,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/feeding': {
+      id: '/_authenticated/feeding'
+      path: '/feeding'
+      fullPath: '/feeding'
+      preLoaderRoute: typeof AuthenticatedFeedingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/sales': {
       id: '/_authenticated/sales'
       path: '/sales'
       fullPath: '/sales'
       preLoaderRoute: typeof AuthenticatedSalesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/search': {
+      id: '/_authenticated/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof AuthenticatedSearchRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/treatments': {
+      id: '/_authenticated/treatments'
+      path: '/treatments'
+      fullPath: '/treatments'
+      preLoaderRoute: typeof AuthenticatedTreatmentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/users': {
+      id: '/_authenticated/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AuthenticatedUsersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/weights': {
+      id: '/_authenticated/weights'
+      path: '/weights'
+      fullPath: '/weights'
+      preLoaderRoute: typeof AuthenticatedWeightsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/animals/': {
@@ -246,8 +360,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedFeedingRoute: typeof AuthenticatedFeedingRoute
   AuthenticatedSalesRoute: typeof AuthenticatedSalesRoute
+  AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
+  AuthenticatedTreatmentsRoute: typeof AuthenticatedTreatmentsRoute
+  AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
+  AuthenticatedWeightsRoute: typeof AuthenticatedWeightsRoute
   AuthenticatedAnimalsIdRoute: typeof AuthenticatedAnimalsIdRoute
   AuthenticatedBarnsIdRoute: typeof AuthenticatedBarnsIdRoute
   AuthenticatedCustomersIdRoute: typeof AuthenticatedCustomersIdRoute
@@ -257,8 +377,14 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedActivityRoute: AuthenticatedActivityRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedFeedingRoute: AuthenticatedFeedingRoute,
   AuthenticatedSalesRoute: AuthenticatedSalesRoute,
+  AuthenticatedSearchRoute: AuthenticatedSearchRoute,
+  AuthenticatedTreatmentsRoute: AuthenticatedTreatmentsRoute,
+  AuthenticatedUsersRoute: AuthenticatedUsersRoute,
+  AuthenticatedWeightsRoute: AuthenticatedWeightsRoute,
   AuthenticatedAnimalsIdRoute: AuthenticatedAnimalsIdRoute,
   AuthenticatedBarnsIdRoute: AuthenticatedBarnsIdRoute,
   AuthenticatedCustomersIdRoute: AuthenticatedCustomersIdRoute,
