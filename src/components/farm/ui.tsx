@@ -25,14 +25,15 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
   );
 }
 
-export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
+export function SectionTitle({ children, action, className }: { children: ReactNode; action?: ReactNode; className?: string }) {
   return (
-    <div className="mb-3 mt-6 flex items-center justify-between">
+    <div className={cn("mb-3 mt-6 flex items-center justify-between", className)}>
       <h2 className="text-sm font-bold text-foreground/80">{children}</h2>
       {action}
     </div>
   );
 }
+
 
 export function StatusBadge({ status, className }: { status: AnimalStatus; className?: string }) {
   const styles: Record<AnimalStatus, string> = {

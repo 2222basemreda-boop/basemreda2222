@@ -91,7 +91,7 @@ export const salesQuery = queryOptions({
     throwIf(
       await supabase
         .from("sales")
-        .select("*, animal:animals(id,tag_number,color), customer:customers(id,name,code)")
+        .select("*, animal:animals(id,tag_number,color), customer:customers(id,name,code,phone,address)")
         .order("sale_date", { ascending: false })
         .order("created_at", { ascending: false }),
     ),

@@ -233,6 +233,7 @@ export type Database = {
       }
       customers: {
         Row: {
+          address: string | null
           code: string
           created_at: string
           id: string
@@ -242,6 +243,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address?: string | null
           code: string
           created_at?: string
           id?: string
@@ -251,6 +253,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address?: string | null
           code?: string
           created_at?: string
           id?: string
@@ -339,8 +342,10 @@ export type Database = {
           created_by: string | null
           customer_id: string | null
           id: string
+          invoice_number: string | null
           notes: string | null
           paid_amount: number
+          payment_method: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           price_per_kg: number
           sale_date: string
@@ -354,8 +359,10 @@ export type Database = {
           created_by?: string | null
           customer_id?: string | null
           id?: string
+          invoice_number?: string | null
           notes?: string | null
           paid_amount?: number
+          payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           price_per_kg: number
           sale_date?: string
@@ -369,8 +376,10 @@ export type Database = {
           created_by?: string | null
           customer_id?: string | null
           id?: string
+          invoice_number?: string | null
           notes?: string | null
           paid_amount?: number
+          payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           price_per_kg?: number
           sale_date?: string
