@@ -373,7 +373,7 @@ export function SaleDialog({ open, onOpenChange, animal, initial }: DialogProps 
   }, [open, animal?.id, initial?.id]);
 
   const { data: allAnimals } = useQuery(animalsQuery);
-  const animals = useAnimalOptions((a) => a.status !== "sold");
+  const animals = useAnimalOptions((a) => a.status === "available");
   const customers = useCustomerOptions();
   const up = (k: keyof typeof f) => (v: string | null) => setF((s) => ({ ...s, [k]: v }));
   const total = (toNum(f.weight) ?? 0) * (toNum(f.price_per_kg) ?? 0);
@@ -524,15 +524,16 @@ export function FeedDialog({ open, onOpenChange, initial, defaultBarnId }: Dialo
 const customerSchema = z.object({
   name: z.string().trim().min(1, "اسم العميل مطلوب").max(120),
   phone: optText(30),
+  address: optText(300),
   code: z.string().trim().min(1, "كود العميل مطلوب").max(30),
   notes: optText(1000),
 });
 
 export function CustomerDialog({ open, onOpenChange, initial }: DialogProps & { initial?: Customer | null }) {
-  const [f, setF] = useState({ name: "", phone: "", code: "", notes: "" });
+  const [f, setF] = useState({ name: "", phone: "", address: "", code: "", notes: "" });
   useEffect(() => {
     if (!open) return;
-    setF(initial ? { name: initial.name, phone: initial.phone ?? "", code: initial.code, notes: initial.notes ?? "" } : { name: "", phone: "", code: "", notes: "" });
+    setF(initial ? { name: initial.name, phone: initial.phone ?? "", address: initial.address ?? "", code: initial.code, notes: initial.notes ?? "" } : { name: "", phone: "", address: "", code: "", notes: "" });
   }, [open, initial]);
   const up = (k: keyof typeof f) => (v: string) => setF((s) => ({ ...s, [k]: v }));
 
@@ -558,12 +559,16 @@ export function CustomerDialog({ open, onOpenChange, initial }: DialogProps & { 
           <Input value={f.phone} onChange={(e) => up("phone")(e.target.value)} type="tel" inputMode="tel" className="num" dir="ltr" />
         </Field>
       </div>
+      <Field label="العنوان">
+        <Input value={f.address} onChange={(e) => up("address")(e.target.value)} placeholder="المدينة / القرية / الشارع" />
+      </Field>
       <Field label="ملاحظات">
         <Textarea value={f.notes} onChange={(e) => up("notes")(e.target.value)} rows={2} />
       </Field>
     </FormDialog>
   );
 }
+
 
 /* ---------- Barn ---------- */
 
