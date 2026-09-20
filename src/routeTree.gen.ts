@@ -26,6 +26,7 @@ import { Route as AuthenticatedBarnsIdRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
 import { Route as AuthenticatedSalesIndexRouteImport } from './routes/_authenticated/sales.index'
+import { Route as AuthenticatedSalesNewRouteImport } from './routes/_authenticated/sales.new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -114,6 +115,11 @@ const AuthenticatedSalesIndexRoute = AuthenticatedSalesIndexRouteImport.update({
   path: '/sales/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSalesNewRoute = AuthenticatedSalesNewRouteImport.update({
+  id: '/sales/new',
+  path: '/sales/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
+  '/sales/new': typeof AuthenticatedSalesNewRoute
   '/animals/': typeof AuthenticatedAnimalsIndexRoute
   '/barns/': typeof AuthenticatedBarnsIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
+  '/sales/new': typeof AuthenticatedSalesNewRoute
   '/animals': typeof AuthenticatedAnimalsIndexRoute
   '/barns': typeof AuthenticatedBarnsIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/_authenticated/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/_authenticated/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
+  '/_authenticated/sales/new': typeof AuthenticatedSalesNewRoute
   '/_authenticated/animals/': typeof AuthenticatedAnimalsIndexRoute
   '/_authenticated/barns/': typeof AuthenticatedBarnsIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/animals/$id'
     | '/barns/$id'
     | '/customers/$id'
+    | '/sales/new'
     | '/animals/'
     | '/barns/'
     | '/customers/'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/animals/$id'
     | '/barns/$id'
     | '/customers/$id'
+    | '/sales/new'
     | '/animals'
     | '/barns'
     | '/customers'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/_authenticated/animals/$id'
     | '/_authenticated/barns/$id'
     | '/_authenticated/customers/$id'
+    | '/_authenticated/sales/new'
     | '/_authenticated/animals/'
     | '/_authenticated/barns/'
     | '/_authenticated/customers/'
@@ -356,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSalesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/sales/new': {
+      id: '/_authenticated/sales/new'
+      path: '/sales/new'
+      fullPath: '/sales/new'
+      preLoaderRoute: typeof AuthenticatedSalesNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -370,6 +389,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnimalsIdRoute: typeof AuthenticatedAnimalsIdRoute
   AuthenticatedBarnsIdRoute: typeof AuthenticatedBarnsIdRoute
   AuthenticatedCustomersIdRoute: typeof AuthenticatedCustomersIdRoute
+  AuthenticatedSalesNewRoute: typeof AuthenticatedSalesNewRoute
   AuthenticatedAnimalsIndexRoute: typeof AuthenticatedAnimalsIndexRoute
   AuthenticatedBarnsIndexRoute: typeof AuthenticatedBarnsIndexRoute
   AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
@@ -387,6 +407,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnimalsIdRoute: AuthenticatedAnimalsIdRoute,
   AuthenticatedBarnsIdRoute: AuthenticatedBarnsIdRoute,
   AuthenticatedCustomersIdRoute: AuthenticatedCustomersIdRoute,
+  AuthenticatedSalesNewRoute: AuthenticatedSalesNewRoute,
   AuthenticatedAnimalsIndexRoute: AuthenticatedAnimalsIndexRoute,
   AuthenticatedBarnsIndexRoute: AuthenticatedBarnsIndexRoute,
   AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
