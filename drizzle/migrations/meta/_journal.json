@@ -15,6 +15,13 @@
       "when": 1789734239145,
       "tag": "0001_fix_log_activity_barn_id",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789883927904,
+      "tag": "0002_sale_invoice_and_guard",
+      "breakpoints": true
     }
   ]
 }
