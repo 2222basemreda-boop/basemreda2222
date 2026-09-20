@@ -144,11 +144,12 @@ function NewSalePage() {
     },
     onError: (e: Error) => {
       const m = e.message;
-      if (/ANIMAL_NOT_AVAILABLE|ANIMAL_ALREADY_SOLD/.test(m)) return toast.error(BUSY_MSG);
-      if (/duplicate key/.test(m) && /code/.test(m)) return toast.error("كود العميل مستخدم من قبل");
-      if (/row-level security/.test(m)) return toast.error("ليس لديك صلاحية تسجيل المبيعات");
-      toast.error(m);
+      if (/ANIMAL_NOT_AVAILABLE|ANIMAL_ALREADY_SOLD/.test(m)) toast.error(BUSY_MSG);
+      else if (/duplicate key/.test(m) && /code/.test(m)) toast.error("كود العميل مستخدم من قبل");
+      else if (/row-level security/.test(m)) toast.error("ليس لديك صلاحية تسجيل المبيعات");
+      else toast.error(m);
     },
+
   });
 
   if (!auth.can("sales.write")) return <EmptyState title="ليس لديك صلاحية تسجيل المبيعات" />;
