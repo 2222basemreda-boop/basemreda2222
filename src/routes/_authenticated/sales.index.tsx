@@ -10,7 +10,7 @@ import { PageHeader, Loading, EmptyState, GlassCard, PaymentBadge, StatTile } fr
 import { SaleDialog, useDeleteRow } from "@/components/farm/forms";
 import { ConfirmDialog } from "@/components/farm/FormDialog";
 
-export const Route = createFileRoute("/_authenticated/sales")({
+export const Route = createFileRoute("/_authenticated/sales/")({
   head: () => ({
     meta: [
       { title: "المبيعات — مزرعة الإمام" },
