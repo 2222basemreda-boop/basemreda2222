@@ -28,12 +28,15 @@ function useSave<TVars>(fn: (v: TVars) => Promise<void>, onDone: () => void, suc
 }
 
 function friendly(msg: string) {
+  if (/ANIMAL_NOT_AVAILABLE|ANIMAL_ALREADY_SOLD/.test(msg)) return "هذا العجل محجوز أو مباع بالفعل ولا يمكن بيعه مرة أخرى.";
+  if (/ANIMAL_NOT_FOUND/.test(msg)) return "الحيوان غير موجود";
   if (/duplicate key/.test(msg) && /tag_number/.test(msg)) return "رقم الحيوان مستخدم من قبل";
   if (/duplicate key/.test(msg) && /code/.test(msg)) return "كود العميل مستخدم من قبل";
   if (/duplicate key/.test(msg) && /barns_name/.test(msg)) return "اسم الحظيرة مستخدم من قبل";
   if (/row-level security/.test(msg)) return "ليس لديك صلاحية لتنفيذ هذا الإجراء";
   return msg;
 }
+
 
 function firstIssue(res: z.SafeParseReturnType<unknown, unknown>) {
   if (res.success) return null;
