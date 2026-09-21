@@ -10,7 +10,7 @@ import { FormDialog } from "./FormDialog";
 import { SearchSelect } from "./SearchSelect";
 import { animalsQuery, barnsQuery, customersQuery, type Animal, type Barn, type Customer, type FeedRecord, type Sale, type Treatment, type WeightRecord } from "@/lib/queries";
 import { STATUS_LABELS, PAYMENT_LABELS, type AnimalStatus, type PaymentStatus } from "@/lib/labels";
-import { fmtMoney, today, toNum } from "@/lib/format";
+import { fmtMoney, invoiceTotal, today, toNum } from "@/lib/format";
 
 /* ---------- helpers ---------- */
 
@@ -81,7 +81,7 @@ const animalSchema = z.object({
   current_weight: optNum,
   entry_date: z.string().min(1, "التاريخ مطلوب"),
   barn_id: z.string().nullable(),
-  customer_id: z.string().nullable(),
+  supplier_name: optText(120),
   status: z.enum(["available", "reserved"]),
   notes: optText(1000),
 });
@@ -89,7 +89,7 @@ const animalSchema = z.object({
 export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defaultCustomerId }: DialogProps & { initial?: Animal | null; defaultBarnId?: string | null; defaultCustomerId?: string | null }) {
   const blank = () => ({
     tag_number: "", color: "", current_weight: "", entry_date: today(),
-    barn_id: defaultBarnId ?? null, customer_id: defaultCustomerId ?? null, status: "available" as AnimalStatus, notes: "",
+    barn_id: defaultBarnId ?? null, supplier_name: "", status: defaultCustomerId ? "reserved" as AnimalStatus : "available" as AnimalStatus, notes: "",
   });
   const [f, setF] = useState(blank);
   useEffect(() => {
@@ -98,7 +98,7 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
       initial
         ? {
             tag_number: initial.tag_number, color: initial.color ?? "", current_weight: String(initial.current_weight ?? ""),
-            entry_date: initial.entry_date, barn_id: initial.barn_id, customer_id: initial.customer_id,
+            entry_date: initial.entry_date, barn_id: initial.barn_id, supplier_name: initial.supplier_name ?? "",
             status: initial.status, notes: initial.notes ?? "",
           }
         : blank(),
@@ -107,7 +107,6 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
   }, [open, initial?.id]);
 
   const barns = useBarns();
-  const customers = useCustomerOptions();
   const isSold = initial?.status === "sold";
 
   const save = useSave(async () => {
@@ -115,10 +114,9 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
     const err = firstIssue(parsed);
     if (err || !parsed.success) throw new Error(err ?? "");
     const d = parsed.data;
-    if (d.status === "reserved" && !d.customer_id) throw new Error("الحجز يتطلب اختيار عميل");
     const payload = {
       tag_number: d.tag_number, color: d.color, entry_date: d.entry_date, barn_id: d.barn_id,
-      customer_id: d.customer_id, notes: d.notes,
+      supplier_name: d.supplier_name, notes: d.notes,
       ...(isSold ? {} : { status: d.status }),
     };
     if (initial) {
@@ -157,8 +155,8 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
           {barns.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </NativeSelect>
       </Field>
-      <Field label="العميل" hint="اتركه فارغاً إذا لم يكن مرتبطاً بعميل">
-        <SearchSelect options={customers} value={f.customer_id} onChange={set("customer_id")} placeholder="بدون عميل" />
+      <Field label="Supplier Name">
+        <Input value={f.supplier_name} onChange={(e) => set("supplier_name")(e.target.value)} placeholder="اسم المورد" />
       </Field>
       {!isSold && (
         <Field label="الحالة">
@@ -355,20 +353,23 @@ const saleSchema = z.object({
   sale_date: z.string().min(1, "التاريخ مطلوب"),
   payment_status: z.enum(["paid", "partial", "unpaid"]),
   paid_amount: optNum,
+  worker_tip: optNum,
+  transportation: optNum,
+  slaughtering: optNum,
   notes: optText(1000),
 });
 
 export function SaleDialog({ open, onOpenChange, animal, initial }: DialogProps & { animal?: Animal | null; initial?: Sale | null }) {
   const blank = () => ({
     animal_id: animal?.id ?? "", customer_id: animal?.customer_id ?? null, weight: animal?.current_weight ? String(animal.current_weight) : "",
-    price_per_kg: "", sale_date: today(), payment_status: "unpaid" as PaymentStatus, paid_amount: "", notes: "",
+    price_per_kg: "", sale_date: today(), payment_status: "unpaid" as PaymentStatus, paid_amount: "", worker_tip: "", transportation: "", slaughtering: "", notes: "",
   });
   const [f, setF] = useState(blank);
   useEffect(() => {
     if (!open) return;
     setF(
       initial
-        ? { animal_id: initial.animal_id, customer_id: initial.customer_id, weight: String(initial.weight), price_per_kg: String(initial.price_per_kg), sale_date: initial.sale_date, payment_status: initial.payment_status, paid_amount: String(initial.paid_amount ?? ""), notes: initial.notes ?? "" }
+        ? { animal_id: initial.animal_id, customer_id: initial.customer_id, weight: String(initial.weight), price_per_kg: String(initial.price_per_kg), sale_date: initial.sale_date, payment_status: initial.payment_status, paid_amount: String(initial.paid_amount ?? ""), worker_tip: String(initial.worker_tip ?? ""), transportation: String(initial.transportation ?? ""), slaughtering: String(initial.slaughtering ?? ""), notes: initial.notes ?? "" }
         : blank(),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -378,7 +379,8 @@ export function SaleDialog({ open, onOpenChange, animal, initial }: DialogProps 
   const animals = useAnimalOptions((a) => a.status === "available");
   const customers = useCustomerOptions();
   const up = (k: keyof typeof f) => (v: string | null) => setF((s) => ({ ...s, [k]: v }));
-  const total = (toNum(f.weight) ?? 0) * (toNum(f.price_per_kg) ?? 0);
+  const baseTotal = (toNum(f.weight) ?? 0) * (toNum(f.price_per_kg) ?? 0);
+  const total = invoiceTotal(baseTotal, f.worker_tip, f.transportation, f.slaughtering);
 
   // When the user picks an animal from the list, propose its current weight and linked customer (real data, editable).
   const pickAnimal = (id: string | null) => {
@@ -392,9 +394,9 @@ export function SaleDialog({ open, onOpenChange, animal, initial }: DialogProps 
     if (err || !parsed.success) throw new Error(err ?? "");
     const d = parsed.data;
     if (!d.customer_id) throw new Error("اختر العميل المشتري");
-    const paid = d.payment_status === "paid" ? d.weight * d.price_per_kg : d.payment_status === "unpaid" ? 0 : (d.paid_amount ?? 0);
+    const paid = d.payment_status === "paid" ? total : d.payment_status === "unpaid" ? 0 : (d.paid_amount ?? 0);
     if (d.payment_status === "partial" && paid <= 0) throw new Error("أدخل المبلغ المدفوع");
-    const payload = { animal_id: d.animal_id, customer_id: d.customer_id, weight: d.weight, price_per_kg: d.price_per_kg, sale_date: d.sale_date, payment_status: d.payment_status, paid_amount: paid, notes: d.notes };
+    const payload = { animal_id: d.animal_id, customer_id: d.customer_id, weight: d.weight, price_per_kg: d.price_per_kg, worker_tip: d.worker_tip ?? 0, transportation: d.transportation ?? 0, slaughtering: d.slaughtering ?? 0, sale_date: d.sale_date, payment_status: d.payment_status, paid_amount: paid, notes: d.notes };
     if (initial) {
       const { error } = await supabase.from("sales").update(payload).eq("id", initial.id);
       if (error) throw new Error(error.message);
@@ -424,7 +426,22 @@ export function SaleDialog({ open, onOpenChange, animal, initial }: DialogProps 
         </Field>
       </div>
       <div className="glass flex items-center justify-between rounded-2xl px-4 py-3">
-        <span className="text-sm text-muted-foreground">الإجمالي</span>
+        <span className="text-sm text-muted-foreground">إجمالي الوزن والسعر</span>
+        <span className="num text-xl text-brand">{fmtMoney(baseTotal)}</span>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <Field label="Workers’ Tip">
+          <Input value={f.worker_tip} onChange={(e) => up("worker_tip")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
+        </Field>
+        <Field label="Transportation">
+          <Input value={f.transportation} onChange={(e) => up("transportation")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
+        </Field>
+        <Field label="Slaughtering">
+          <Input value={f.slaughtering} onChange={(e) => up("slaughtering")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
+        </Field>
+      </div>
+      <div className="glass flex items-center justify-between rounded-2xl px-4 py-3">
+        <span className="text-sm text-muted-foreground">الإجمالي النهائي</span>
         <span className="num text-xl text-brand">{fmtMoney(total)}</span>
       </div>
       <div className="grid grid-cols-2 gap-3">
