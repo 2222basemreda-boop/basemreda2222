@@ -128,20 +128,23 @@ function NewSalePage() {
         const { error: reserveError } = await supabase.rpc("reserve_animal", {
           _animal_id: f.animal_id,
           _customer_id: customerId,
-          _note: f.notes.trim() || null,
+          _note: f.notes.trim() || undefined,
         });
         if (reserveError) throw new Error(reserveError.message);
         return null;
       }
 
+      const weight = toNum(f.weight);
+      const pricePerKg = toNum(f.price_per_kg);
+      if (weight === null || pricePerKg === null) throw new Error("أدخل وزن العجل وسعر الكيلو");
       const { data: u } = await supabase.auth.getUser();
       const { data: sale, error } = await supabase
         .from("sales")
         .insert({
           animal_id: f.animal_id,
           customer_id: customerId,
-          weight: toNum(f.weight)!,
-          price_per_kg: toNum(f.price_per_kg)!,
+          weight,
+          price_per_kg: pricePerKg,
           worker_tip: toNum(f.worker_tip) ?? 0,
           transportation: toNum(f.transportation) ?? 0,
           slaughtering: toNum(f.slaughtering) ?? 0,
