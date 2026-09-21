@@ -17,9 +17,9 @@ import { InvoiceActions, InvoiceView, invoiceFromSale, type InvoiceData } from "
 export const Route = createFileRoute("/_authenticated/sales/new")({
   head: () => ({
     meta: [
-      { title: "بيع جديد — مزرعة الإمام" },
+      { title: "بيع جديد — Elemam Farm" },
       { name: "description", content: "تسجيل عملية بيع كاملة من شاشة واحدة: العميل، العجل، السعر، الدفع، والفاتورة." },
-      { property: "og:title", content: "بيع جديد — مزرعة الإمام" },
+      { property: "og:title", content: "بيع جديد — Elemam Farm" },
       { property: "og:description", content: "بيع من شاشة واحدة مع فاتورة جاهزة للطباعة." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -12,9 +12,9 @@ import { BarnDialog } from "@/components/farm/forms";
 export const Route = createFileRoute("/_authenticated/barns/")({
   head: () => ({
     meta: [
-      { title: "الحظائر — مزرعة الإمام" },
-      { name: "description", content: "إدارة حظائر مزرعة الإمام وعدد الماشية في كل حظيرة." },
-      { property: "og:title", content: "الحظائر — مزرعة الإمام" },
+      { title: "الحظائر — Elemam Farm" },
+      { name: "description", content: "إدارة حظائر Elemam Farm وعدد الماشية في كل حظيرة." },
+      { property: "og:title", content: "الحظائر — Elemam Farm" },
       { property: "og:description", content: "إدارة الحظائر." },
     ],
   }),

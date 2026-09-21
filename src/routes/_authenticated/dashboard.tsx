@@ -13,10 +13,10 @@ import { AnimalDialog, WeightDialog } from "@/components/farm/forms";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "الرئيسية — مزرعة الإمام" },
-      { name: "description", content: "نظرة عامة على الماشية، الحظائر، الأوزان والمبيعات في مزرعة الإمام." },
-      { property: "og:title", content: "الرئيسية — مزرعة الإمام" },
-      { property: "og:description", content: "لوحة متابعة مزرعة الإمام." },
+      { title: "الرئيسية — Elemam Farm" },
+      { name: "description", content: "نظرة عامة على الماشية، الحظائر، الأوزان والمبيعات في Elemam Farm." },
+      { property: "og:title", content: "الرئيسية — Elemam Farm" },
+      { property: "og:description", content: "لوحة متابعة Elemam Farm." },
     ],
   }),
   component: Dashboard,

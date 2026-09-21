@@ -50,3 +50,12 @@ export function toNum(v: string | number | null | undefined): number | null {
   const n = Number(v);
   return Number.isNaN(n) ? null : n;
 }
+
+export function invoiceTotal(
+  base: number | string | null | undefined,
+  workerTip: number | string | null | undefined = 0,
+  transportation: number | string | null | undefined = 0,
+  slaughtering: number | string | null | undefined = 0,
+): number {
+  return (toNum(base) ?? 0) + (toNum(workerTip) ?? 0) + (toNum(transportation) ?? 0) + (toNum(slaughtering) ?? 0);
+}

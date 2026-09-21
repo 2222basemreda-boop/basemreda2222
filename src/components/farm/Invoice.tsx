@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { fmtDate, fmtMoney, fmtWeight } from "@/lib/format";
 import { PAYMENT_LABELS, type PaymentStatus } from "@/lib/labels";
 
-export const FARM_NAME = "مزرعة الإمام";
+export const FARM_NAME = "Elemam Farm";
 
 export type InvoiceData = {
   invoice_number: string;

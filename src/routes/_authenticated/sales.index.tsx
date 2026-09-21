@@ -14,9 +14,9 @@ import { InvoiceDialog, invoiceFromSale, type InvoiceData } from "@/components/f
 export const Route = createFileRoute("/_authenticated/sales/")({
   head: () => ({
     meta: [
-      { title: "المبيعات — مزرعة الإمام" },
-      { name: "description", content: "سجل مبيعات الماشية وحالة الدفع والفواتير في مزرعة الإمام." },
-      { property: "og:title", content: "المبيعات — مزرعة الإمام" },
+      { title: "المبيعات — Elemam Farm" },
+      { name: "description", content: "سجل مبيعات الماشية وحالة الدفع والفواتير في Elemam Farm." },
+      { property: "og:title", content: "المبيعات — Elemam Farm" },
       { property: "og:description", content: "سجل المبيعات والفواتير." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

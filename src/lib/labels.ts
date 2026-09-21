@@ -35,6 +35,7 @@ export const ACTION_LABELS: Record<string, string> = {
   updated: "عدّل",
   deleted: "حذف",
   moved: "نقل",
+  reserved: "حجز",
   cancelled: "ألغى حجز",
 };
 
