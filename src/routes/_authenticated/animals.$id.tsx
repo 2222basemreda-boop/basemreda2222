@@ -146,7 +146,9 @@ function AnimalDetail() {
                     <p className="font-bold">{h.customer ? `${h.customer.name} (${h.customer.code})` : "بدون عميل"}</p>
                     <p className="text-xs text-muted-foreground">{fmtDate(h.changed_at)}</p>
                   </div>
-                  <StatusBadge status={h.status} />
+                  {h.event === "cancelled"
+                    ? <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-bold text-destructive">حجز ملغي</span>
+                    : <StatusBadge status={h.status} />}
                 </div>
               ))}
             </GlassCard>
@@ -201,6 +203,18 @@ function AnimalDetail() {
         onConfirm={async () => {
           await del.mutateAsync({ table: "animals", id: animal.id });
           navigate({ to: "/animals", replace: true });
+        }}
+      />
+      <ConfirmDialog
+        open={dlg === "cancelBooking"}
+        onOpenChange={(o) => !o && setDlg(null)}
+        title={`إلغاء حجز الحيوان ${animal.tag_number}؟`}
+        description="سيتم إلغاء الحجز فقط وتحويل الحالة إلى «متاح». لن يُحذف الحيوان ولا أي من بياناته، وسيظهر الحجز القديم في السجل كـ«حجز ملغي»."
+        confirmLabel="تأكيد إلغاء الحجز"
+        pending={cancelBooking.isPending}
+        onConfirm={async () => {
+          await cancelBooking.mutateAsync({ animalId: animal.id });
+          setDlg(null);
         }}
       />
     </div>
