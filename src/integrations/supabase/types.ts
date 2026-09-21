@@ -110,6 +110,7 @@ export type Database = {
           id: string
           notes: string | null
           status: Database["public"]["Enums"]["animal_status"]
+          supplier_name: string | null
           tag_number: string
           updated_at: string
         }
@@ -124,6 +125,7 @@ export type Database = {
           id?: string
           notes?: string | null
           status?: Database["public"]["Enums"]["animal_status"]
+          supplier_name?: string | null
           tag_number: string
           updated_at?: string
         }
@@ -138,6 +140,7 @@ export type Database = {
           id?: string
           notes?: string | null
           status?: Database["public"]["Enums"]["animal_status"]
+          supplier_name?: string | null
           tag_number?: string
           updated_at?: string
         }
@@ -355,9 +358,12 @@ export type Database = {
           payment_status: Database["public"]["Enums"]["payment_status"]
           price_per_kg: number
           sale_date: string
+          slaughtering: number
           total_price: number | null
+          transportation: number
           updated_at: string
           weight: number
+          worker_tip: number
         }
         Insert: {
           animal_id: string
@@ -372,9 +378,12 @@ export type Database = {
           payment_status?: Database["public"]["Enums"]["payment_status"]
           price_per_kg: number
           sale_date?: string
+          slaughtering?: number
           total_price?: number | null
+          transportation?: number
           updated_at?: string
           weight: number
+          worker_tip?: number
         }
         Update: {
           animal_id?: string
@@ -389,9 +398,12 @@ export type Database = {
           payment_status?: Database["public"]["Enums"]["payment_status"]
           price_per_kg?: number
           sale_date?: string
+          slaughtering?: number
           total_price?: number | null
+          transportation?: number
           updated_at?: string
           weight?: number
+          worker_tip?: number
         }
         Relationships: [
           {
@@ -535,6 +547,10 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      reserve_animal: {
+        Args: { _animal_id: string; _customer_id: string; _note?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       animal_status: "available" | "reserved" | "sold"

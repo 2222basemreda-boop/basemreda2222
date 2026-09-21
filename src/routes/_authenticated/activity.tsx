@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { PageHeader, Loading, EmptyState, GlassCard } from "@/components/farm/ui";
 
 export const Route = createFileRoute("/_authenticated/activity")({
-  head: () => ({ meta: [{ title: "سجل النشاط — مزرعة الإمام" }, { name: "description", content: "من أضاف أو عدّل أو نقل أو حذف السجلات في مزرعة الإمام." }, { property: "og:title", content: "سجل النشاط — مزرعة الإمام" }, { property: "og:description", content: "من أضاف أو عدّل أو نقل أو حذف السجلات في مزرعة الإمام." }] }),
+  head: () => ({ meta: [{ title: "سجل النشاط — Elemam Farm" }, { name: "description", content: "من أضاف أو عدّل أو نقل أو حذف السجلات في Elemam Farm." }, { property: "og:title", content: "سجل النشاط — Elemam Farm" }, { property: "og:description", content: "من أضاف أو عدّل أو نقل أو حذف السجلات في Elemam Farm." }] }),
   component: ActivityPage,
 });
 

@@ -14,10 +14,12 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "تسجيل الدخول — مزرعة الإمام" },
-      { name: "description", content: "سجّل الدخول إلى نظام إدارة مزرعة الإمام." },
-      { property: "og:title", content: "تسجيل الدخول — مزرعة الإمام" },
-      { property: "og:description", content: "الدخول إلى نظام إدارة الماشية لمزرعة الإمام." },
+      { title: "تسجيل الدخول — Elemam Farm" },
+      { name: "description", content: "سجّل الدخول إلى نظام إدارة Elemam Farm." },
+      { property: "og:title", content: "تسجيل الدخول — Elemam Farm" },
+      { property: "og:description", content: "الدخول إلى نظام إدارة الماشية لElemam Farm." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
@@ -41,7 +43,7 @@ function AuthPage() {
           <div className="grid size-16 place-items-center rounded-3xl tile-brand">
             <Beef className="size-8" />
           </div>
-          <h1 className="mt-4 text-3xl">مزرعة الإمام</h1>
+          <h1 className="mt-4 text-3xl">Elemam Farm</h1>
           <p className="mt-1 text-sm text-muted-foreground">نظام إدارة الماشية</p>
         </div>
         <div className="glass-strong rounded-3xl p-6">

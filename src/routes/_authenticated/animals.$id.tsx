@@ -15,10 +15,12 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/animals/$id")({
   head: () => ({
     meta: [
-      { title: "بيانات الحيوان — مزرعة الإمام" },
+      { title: "بيانات الحيوان — Elemam Farm" },
       { name: "description", content: "بطاقة الحيوان الكاملة: الأوزان، الحركات بين الحظائر، العملاء والعلاجات." },
-      { property: "og:title", content: "بيانات الحيوان — مزرعة الإمام" },
+      { property: "og:title", content: "بيانات الحيوان — Elemam Farm" },
       { property: "og:description", content: "سجل الحيوان الكامل." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AnimalDetail,

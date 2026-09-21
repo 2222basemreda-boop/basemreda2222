@@ -14,7 +14,7 @@ import { PageHeader, Loading, EmptyState, GlassCard, Field, NativeSelect } from 
 import { FormDialog } from "@/components/farm/FormDialog";
 
 export const Route = createFileRoute("/_authenticated/users")({
-  head: () => ({ meta: [{ title: "المستخدمون — مزرعة الإمام" }, { name: "description", content: "إدارة حسابات فريق المزرعة وصلاحياتهم." }, { property: "og:title", content: "المستخدمون — مزرعة الإمام" }, { property: "og:description", content: "إدارة حسابات فريق المزرعة وصلاحياتهم." }] }),
+  head: () => ({ meta: [{ title: "المستخدمون — Elemam Farm" }, { name: "description", content: "إدارة حسابات فريق المزرعة وصلاحياتهم." }, { property: "og:title", content: "المستخدمون — Elemam Farm" }, { property: "og:description", content: "إدارة حسابات فريق المزرعة وصلاحياتهم." }] }),
   component: UsersPage,
 });
 

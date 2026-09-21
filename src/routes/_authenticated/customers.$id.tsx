@@ -13,10 +13,12 @@ import { ConfirmDialog } from "@/components/farm/FormDialog";
 export const Route = createFileRoute("/_authenticated/customers/$id")({
   head: () => ({
     meta: [
-      { title: "بيانات العميل — مزرعة الإمام" },
+      { title: "بيانات العميل — Elemam Farm" },
       { name: "description", content: "ماشية العميل وحجوزاته ومشترياته وإجمالي الوزن." },
-      { property: "og:title", content: "بيانات العميل — مزرعة الإمام" },
+      { property: "og:title", content: "بيانات العميل — Elemam Farm" },
       { property: "og:description", content: "بطاقة العميل." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: CustomerDetail,

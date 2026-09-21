@@ -13,10 +13,12 @@ import { CustomerDialog } from "@/components/farm/forms";
 export const Route = createFileRoute("/_authenticated/customers/")({
   head: () => ({
     meta: [
-      { title: "العملاء — مزرعة الإمام" },
-      { name: "description", content: "قائمة عملاء مزرعة الإمام وحجوزاتهم ومشترياتهم." },
-      { property: "og:title", content: "العملاء — مزرعة الإمام" },
+      { title: "العملاء — Elemam Farm" },
+      { name: "description", content: "قائمة عملاء Elemam Farm وحجوزاتهم ومشترياتهم." },
+      { property: "og:title", content: "العملاء — Elemam Farm" },
       { property: "og:description", content: "قائمة العملاء." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: CustomersPage,

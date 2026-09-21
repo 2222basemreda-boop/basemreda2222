@@ -69,7 +69,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Beef className="size-6" />
           </div>
           <div>
-            <p className="font-display text-lg font-extrabold leading-tight">مزرعة الإمام</p>
+            <p className="font-display text-lg font-extrabold leading-tight">Elemam Farm</p>
             {syncBadge}
           </div>
         </div>
@@ -97,7 +97,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="grid size-9 place-items-center rounded-xl tile-brand">
             <Beef className="size-5" />
           </div>
-          <span className="font-display text-base font-extrabold">مزرعة الإمام</span>
+          <span className="font-display text-base font-extrabold">Elemam Farm</span>
         </div>
         {syncBadge}
       </header>

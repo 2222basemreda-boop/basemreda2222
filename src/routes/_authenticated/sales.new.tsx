@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowRight, Loader2, Save, UserPlus, Users } from "lucide-react";
+import { ArrowRight, CalendarCheck, Loader2, Save, UserPlus, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { animalsQuery, customersQuery } from "@/lib/queries";
-import { fmtMoney, today, toNum } from "@/lib/format";
+import { fmtMoney, invoiceTotal, today, toNum } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,10 +17,10 @@ import { InvoiceActions, InvoiceView, invoiceFromSale, type InvoiceData } from "
 export const Route = createFileRoute("/_authenticated/sales/new")({
   head: () => ({
     meta: [
-      { title: "بيع جديد — مزرعة الإمام" },
-      { name: "description", content: "تسجيل عملية بيع كاملة من شاشة واحدة: العميل، العجل، السعر، الدفع، والفاتورة." },
-      { property: "og:title", content: "بيع جديد — مزرعة الإمام" },
-      { property: "og:description", content: "بيع من شاشة واحدة مع فاتورة جاهزة للطباعة." },
+      { title: "بيع أو حجز — Elemam Farm" },
+      { name: "description", content: "تسجيل بيع أو حجز كامل من شاشة واحدة في Elemam Farm." },
+      { property: "og:title", content: "بيع أو حجز — Elemam Farm" },
+      { property: "og:description", content: "بيع أو حجز من شاشة واحدة مع فاتورة جاهزة للطباعة عند البيع." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -38,6 +38,7 @@ function NewSalePage() {
   const { data: animals } = useQuery(animalsQuery);
   const { data: customers } = useQuery(customersQuery);
 
+  const [flow, setFlow] = useState<"sale" | "reservation">("sale");
   const [mode, setMode] = useState<"existing" | "new">("new");
   const [f, setF] = useState({
     customer_id: null as string | null,
@@ -48,6 +49,9 @@ function NewSalePage() {
     animal_id: null as string | null,
     weight: "",
     price_per_kg: "",
+    worker_tip: "",
+    transportation: "",
+    slaughtering: "",
     paid_amount: "",
     payment_method: PAYMENT_METHODS[0]!,
     sale_date: today(),
@@ -69,7 +73,8 @@ function NewSalePage() {
   );
   const animal = (animals ?? []).find((a) => a.id === f.animal_id) ?? null;
 
-  const total = (toNum(f.weight) ?? 0) * (toNum(f.price_per_kg) ?? 0);
+  const baseTotal = (toNum(f.weight) ?? 0) * (toNum(f.price_per_kg) ?? 0);
+  const total = invoiceTotal(baseTotal, f.worker_tip, f.transportation, f.slaughtering);
   const paid = Math.min(toNum(f.paid_amount) ?? 0, total || Number.POSITIVE_INFINITY);
   const remaining = Math.max(total - paid, 0);
   const paymentStatus = total > 0 && paid >= total ? "paid" : paid > 0 ? "partial" : "unpaid";
@@ -91,12 +96,14 @@ function NewSalePage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!f.animal_id) throw new Error("اختر العجل المطلوب بيعه");
+      if (!f.animal_id) throw new Error(flow === "sale" ? "اختر العجل المطلوب بيعه" : "اختر العجل المطلوب حجزه");
       const picked = (animals ?? []).find((a) => a.id === f.animal_id);
       if (picked && picked.status !== "available") throw new Error(BUSY_MSG);
-      if ((toNum(f.weight) ?? 0) <= 0) throw new Error("أدخل وزن العجل");
-      if ((toNum(f.price_per_kg) ?? 0) <= 0) throw new Error("أدخل سعر الكيلو");
-      if (!f.sale_date) throw new Error("أدخل تاريخ البيع");
+      if (flow === "sale") {
+        if ((toNum(f.weight) ?? 0) <= 0) throw new Error("أدخل وزن العجل");
+        if ((toNum(f.price_per_kg) ?? 0) <= 0) throw new Error("أدخل سعر الكيلو");
+        if (!f.sale_date) throw new Error("أدخل تاريخ البيع");
+      }
 
       let customerId = f.customer_id;
       if (mode === "new") {
@@ -114,17 +121,31 @@ function NewSalePage() {
         if (cErr) throw new Error(cErr.message);
         customerId = created.id;
       } else if (!customerId) {
-        throw new Error("اختر العميل المشتري");
+        throw new Error(flow === "sale" ? "اختر العميل المشتري" : "اختر العميل للحجز");
       }
 
+      if (flow === "reservation") {
+        const note = f.notes.trim();
+        const args = note ? { _animal_id: f.animal_id, _customer_id: customerId, _note: note } : { _animal_id: f.animal_id, _customer_id: customerId };
+        const { error: reserveError } = await supabase.rpc("reserve_animal", args);
+        if (reserveError) throw new Error(reserveError.message);
+        return null;
+      }
+
+      const weight = toNum(f.weight);
+      const pricePerKg = toNum(f.price_per_kg);
+      if (weight === null || pricePerKg === null) throw new Error("أدخل وزن العجل وسعر الكيلو");
       const { data: u } = await supabase.auth.getUser();
       const { data: sale, error } = await supabase
         .from("sales")
         .insert({
           animal_id: f.animal_id,
           customer_id: customerId,
-          weight: toNum(f.weight)!,
-          price_per_kg: toNum(f.price_per_kg)!,
+          weight,
+          price_per_kg: pricePerKg,
+          worker_tip: toNum(f.worker_tip) ?? 0,
+          transportation: toNum(f.transportation) ?? 0,
+          slaughtering: toNum(f.slaughtering) ?? 0,
           sale_date: f.sale_date,
           payment_status: paymentStatus,
           paid_amount: paid,
@@ -139,6 +160,11 @@ function NewSalePage() {
     },
     onSuccess: async (sale) => {
       await qc.invalidateQueries();
+      if (!sale) {
+        toast.success("تم حجز العجل للعميل");
+        navigate({ to: "/sales" });
+        return;
+      }
       toast.success(`تم تسجيل البيع — فاتورة ${sale.invoice_number ?? ""}`);
       setInvoice(invoiceFromSale(sale));
     },
@@ -163,7 +189,7 @@ function NewSalePage() {
           <div className="mt-4 space-y-2">
             <InvoiceActions data={invoice} />
             <div className="flex gap-2">
-              <Button variant="secondary" size="lg" className="flex-1" onClick={() => { setInvoice(null); setF((s) => ({ ...s, animal_id: null, weight: "", price_per_kg: "", paid_amount: "", notes: "", customer_id: null, name: "", phone: "", address: "", code: "" })); }}>
+              <Button variant="secondary" size="lg" className="flex-1" onClick={() => { setInvoice(null); setF((s) => ({ ...s, animal_id: null, weight: "", price_per_kg: "", worker_tip: "", transportation: "", slaughtering: "", paid_amount: "", notes: "", customer_id: null, name: "", phone: "", address: "", code: "" })); }}>
                 بيع جديد
               </Button>
               <Button variant="outline" size="lg" className="flex-1" onClick={() => navigate({ to: "/sales" })}>
@@ -179,13 +205,25 @@ function NewSalePage() {
   return (
     <div>
       <Link to="/sales" className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-brand"><ArrowRight className="size-4" /> سجل المبيعات</Link>
-      <PageHeader title="بيع جديد" subtitle="أكمل العملية من شاشة واحدة" />
+      <PageHeader title="بيع أو حجز" subtitle="أكمل العملية من شاشة واحدة" />
 
       <form
         onSubmit={(e) => { e.preventDefault(); save.mutate(); }}
         className="space-y-4 pb-24"
         noValidate
       >
+        <GlassCard className="space-y-3">
+          <SectionTitle className="mt-0">نوع العملية</SectionTitle>
+          <div className="grid grid-cols-2 gap-2">
+            <Button type="button" variant={flow === "sale" ? "default" : "outline"} size="lg" onClick={() => setFlow("sale")}>
+              <Save /> Sale
+            </Button>
+            <Button type="button" variant={flow === "reservation" ? "default" : "outline"} size="lg" onClick={() => setFlow("reservation")}>
+              <CalendarCheck /> Reservation
+            </Button>
+          </div>
+        </GlassCard>
+
         <GlassCard className="space-y-3">
           <SectionTitle className="mt-0">بيانات العميل</SectionTitle>
           <div className="grid grid-cols-2 gap-2">
@@ -223,7 +261,7 @@ function NewSalePage() {
         <GlassCard className="space-y-3">
           <SectionTitle className="mt-0">بيانات العجل</SectionTitle>
           <Field label="اختر العجل (المتاح فقط)" required>
-            <SearchSelect options={animalOptions} value={f.animal_id} onChange={pickAnimal} placeholder="ابحث برقم العجل" emptyText="لا توجد عجول متاحة للبيع" />
+            <SearchSelect options={animalOptions} value={f.animal_id} onChange={pickAnimal} placeholder="ابحث برقم العجل" emptyText="لا توجد عجول متاحة" />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="رقم العجل">
@@ -243,10 +281,25 @@ function NewSalePage() {
           </div>
         </GlassCard>
 
-        <GlassCard className="space-y-3">
+        {flow === "sale" && <GlassCard className="space-y-3">
           <SectionTitle className="mt-0">الدفع</SectionTitle>
           <div className="glass flex items-center justify-between rounded-2xl px-4 py-3">
-            <span className="text-sm text-muted-foreground">إجمالي البيع</span>
+            <span className="text-sm text-muted-foreground">إجمالي الوزن والسعر</span>
+            <span className="num text-xl text-brand">{fmtMoney(baseTotal)}</span>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="Workers’ Tip">
+              <Input value={f.worker_tip} onChange={(e) => up("worker_tip")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
+            </Field>
+            <Field label="Transportation">
+              <Input value={f.transportation} onChange={(e) => up("transportation")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
+            </Field>
+            <Field label="Slaughtering">
+              <Input value={f.slaughtering} onChange={(e) => up("slaughtering")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
+            </Field>
+          </div>
+          <div className="glass flex items-center justify-between rounded-2xl px-4 py-3">
+            <span className="text-sm text-muted-foreground">الإجمالي النهائي</span>
             <span className="num text-xl text-brand">{fmtMoney(total)}</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -271,10 +324,22 @@ function NewSalePage() {
               <Textarea value={f.notes} onChange={(e) => up("notes")(e.target.value)} rows={2} />
             </Field>
           </div>
-        </GlassCard>
+        </GlassCard>}
+
+        {flow === "reservation" && (
+          <GlassCard className="space-y-3">
+            <SectionTitle className="mt-0">الحجز</SectionTitle>
+            <Field label="تاريخ الحجز">
+              <Input value={f.sale_date} onChange={(e) => up("sale_date")(e.target.value)} type="date" className="num" />
+            </Field>
+            <Field label="ملاحظات">
+              <Textarea value={f.notes} onChange={(e) => up("notes")(e.target.value)} rows={2} />
+            </Field>
+          </GlassCard>
+        )}
 
         <Button type="submit" size="lg" className="w-full" disabled={save.isPending}>
-          {save.isPending ? <Loader2 className="animate-spin" /> : <Save />} حفظ البيع وإصدار الفاتورة
+          {save.isPending ? <Loader2 className="animate-spin" /> : flow === "sale" ? <Save /> : <CalendarCheck />} {flow === "sale" ? "حفظ البيع وإصدار الفاتورة" : "حفظ الحجز"}
         </Button>
       </form>
     </div>

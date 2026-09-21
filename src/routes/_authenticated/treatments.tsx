@@ -11,7 +11,7 @@ import { TreatmentDialog, useDeleteRow } from "@/components/farm/forms";
 import { ConfirmDialog } from "@/components/farm/FormDialog";
 
 export const Route = createFileRoute("/_authenticated/treatments")({
-  head: () => ({ meta: [{ title: "العلاجات — مزرعة الإمام" }, { name: "description", content: "سجل العلاجات والتشخيصات لكل حيوان." }, { property: "og:title", content: "العلاجات — مزرعة الإمام" }, { property: "og:description", content: "سجل العلاجات والتشخيصات لكل حيوان." }] }),
+  head: () => ({ meta: [{ title: "العلاجات — Elemam Farm" }, { name: "description", content: "سجل العلاجات والتشخيصات لكل حيوان." }, { property: "og:title", content: "العلاجات — Elemam Farm" }, { property: "og:description", content: "سجل العلاجات والتشخيصات لكل حيوان." }] }),
   component: TreatmentsPage,
 });
 

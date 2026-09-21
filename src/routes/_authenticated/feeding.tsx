@@ -11,7 +11,7 @@ import { FeedDialog, useDeleteRow } from "@/components/farm/forms";
 import { ConfirmDialog } from "@/components/farm/FormDialog";
 
 export const Route = createFileRoute("/_authenticated/feeding")({
-  head: () => ({ meta: [{ title: "التغذية — مزرعة الإمام" }, { name: "description", content: "سجل استهلاك الأعلاف حسب الحظيرة والتاريخ." }, { property: "og:title", content: "التغذية — مزرعة الإمام" }, { property: "og:description", content: "سجل استهلاك الأعلاف حسب الحظيرة والتاريخ." }] }),
+  head: () => ({ meta: [{ title: "التغذية — Elemam Farm" }, { name: "description", content: "سجل استهلاك الأعلاف حسب الحظيرة والتاريخ." }, { property: "og:title", content: "التغذية — Elemam Farm" }, { property: "og:description", content: "سجل استهلاك الأعلاف حسب الحظيرة والتاريخ." }] }),
   component: FeedingPage,
 });
 
