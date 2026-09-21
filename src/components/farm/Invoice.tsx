@@ -1,7 +1,7 @@
-import { Printer, Download } from "lucide-react";
+import { Printer, ImageDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { fmtDate, fmtMoney, fmtWeight } from "@/lib/format";
+import { fmtDate, fmtMoney, fmtWeight, invoiceTotal } from "@/lib/format";
 import { PAYMENT_LABELS, type PaymentStatus } from "@/lib/labels";
 
 export const FARM_NAME = "Elemam Farm";
@@ -15,6 +15,10 @@ export type InvoiceData = {
   animal: { tag_number: string; color: string | null } | null;
   weight: number;
   price_per_kg: number;
+  base_total: number;
+  worker_tip: number;
+  transportation: number;
+  slaughtering: number;
   total: number;
   paid: number;
   remaining: number;
@@ -29,6 +33,9 @@ type SaleLike = {
   weight: number | string;
   price_per_kg: number | string;
   total_price: number | string | null;
+  worker_tip?: number | string | null;
+  transportation?: number | string | null;
+  slaughtering?: number | string | null;
   paid_amount: number | string | null;
   notes: string | null;
   animal?: { tag_number: string; color?: string | null } | null;
@@ -38,7 +45,11 @@ type SaleLike = {
 export function invoiceFromSale(s: SaleLike): InvoiceData {
   const weight = Number(s.weight ?? 0);
   const price = Number(s.price_per_kg ?? 0);
-  const total = Number(s.total_price ?? weight * price);
+  const baseTotal = Number(s.total_price ?? weight * price);
+  const workerTip = Number(s.worker_tip ?? 0);
+  const transportation = Number(s.transportation ?? 0);
+  const slaughtering = Number(s.slaughtering ?? 0);
+  const total = invoiceTotal(baseTotal, workerTip, transportation, slaughtering);
   const paid = s.payment_status === "paid" ? total : Number(s.paid_amount ?? 0);
   return {
     invoice_number: s.invoice_number ?? "—",
@@ -51,6 +62,10 @@ export function invoiceFromSale(s: SaleLike): InvoiceData {
     animal: s.animal ? { tag_number: s.animal.tag_number, color: s.animal.color ?? null } : null,
     weight,
     price_per_kg: price,
+    base_total: baseTotal,
+    worker_tip: workerTip,
+    transportation,
+    slaughtering,
     total,
     paid,
     remaining: Math.max(total - paid, 0),
@@ -95,7 +110,11 @@ export function InvoiceView({ data }: { data: InvoiceData }) {
 
       <div className="rounded-2xl border border-border/60 p-3">
         <p className="mb-1 text-xs font-bold text-brand">الحساب</p>
-        <Row label="إجمالي البيع" value={fmtMoney(data.total)} strong />
+        <Row label="إجمالي الوزن والسعر" value={fmtMoney(data.base_total)} />
+        <Row label="Workers’ Tip" value={fmtMoney(data.worker_tip)} />
+        <Row label="Transportation" value={fmtMoney(data.transportation)} />
+        <Row label="Slaughtering" value={fmtMoney(data.slaughtering)} />
+        <Row label="الإجمالي النهائي" value={fmtMoney(data.total)} strong />
         <Row label="المدفوع" value={fmtMoney(data.paid)} />
         <Row label="المتبقي" value={fmtMoney(data.remaining)} strong />
         <Row label="حالة الدفع" value={PAYMENT_LABELS[data.payment_status]} />
@@ -163,7 +182,13 @@ th{background:#f1f7f3;width:38%;font-weight:700}
   ])}</table>
 <h2>الحساب</h2>
 <table class="totals">
-  <tr class="grand"><th>إجمالي البيع</th><td>${esc(fmtMoney(data.total))}</td></tr>
+  ${rows([
+    ["إجمالي الوزن والسعر", fmtMoney(data.base_total)],
+    ["Workers’ Tip", fmtMoney(data.worker_tip)],
+    ["Transportation", fmtMoney(data.transportation)],
+    ["Slaughtering", fmtMoney(data.slaughtering)],
+  ])}
+  <tr class="grand"><th>الإجمالي النهائي</th><td>${esc(fmtMoney(data.total))}</td></tr>
   ${rows([
     ["المبلغ المدفوع", fmtMoney(data.paid)],
     ["المبلغ المتبقي", fmtMoney(data.remaining)],
@@ -187,16 +212,118 @@ export function printInvoice(data: InvoiceData) {
   setTimeout(() => w.print(), 600);
 }
 
+const CANVAS_WIDTH = 1000;
+
+function canvasRows(data: InvoiceData): [string, string][] {
+  return [
+    ["اسم العميل", data.customer?.name ?? "—"],
+    ["كود العميل", data.customer?.code ?? "—"],
+    ["الهاتف", data.customer?.phone ?? "—"],
+    ["العنوان", data.customer?.address ?? "—"],
+    ["رقم العجل", data.animal?.tag_number ?? "—"],
+    ["اللون", data.animal?.color ?? "—"],
+    ["الوزن", fmtWeight(data.weight)],
+    ["سعر الكيلو", fmtMoney(data.price_per_kg)],
+    ["إجمالي الوزن والسعر", fmtMoney(data.base_total)],
+    ["Workers’ Tip", fmtMoney(data.worker_tip)],
+    ["Transportation", fmtMoney(data.transportation)],
+    ["Slaughtering", fmtMoney(data.slaughtering)],
+    ["الإجمالي النهائي", fmtMoney(data.total)],
+    ["المبلغ المدفوع", fmtMoney(data.paid)],
+    ["المبلغ المتبقي", fmtMoney(data.remaining)],
+    ["حالة الدفع", PAYMENT_LABELS[data.payment_status]],
+    ["طريقة الدفع", data.payment_method ?? "—"],
+  ];
+}
+
 export function downloadInvoice(data: InvoiceData) {
-  const blob = new Blob([buildInvoiceHtml(data)], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${data.invoice_number}.html`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  const rows = canvasRows(data);
+  const noteLines = data.notes ? Math.ceil(data.notes.length / 60) : 0;
+  const canvas = document.createElement("canvas");
+  canvas.width = CANVAS_WIDTH;
+  canvas.height = 310 + rows.length * 54 + (noteLines ? 90 + noteLines * 28 : 0);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  ctx.direction = "rtl";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#2E7D5B";
+  ctx.fillRect(0, 0, canvas.width, 16);
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#1d2b24";
+  ctx.font = "700 38px Cairo, Tajawal, sans-serif";
+  ctx.fillText(FARM_NAME, 920, 78);
+  ctx.font = "700 24px Cairo, Tajawal, sans-serif";
+  ctx.fillText("فاتورة بيع ماشية", 920, 116);
+  ctx.font = "700 22px Tajawal, sans-serif";
+  ctx.fillText(`رقم الفاتورة: ${data.invoice_number}`, 920, 158);
+  ctx.font = "400 20px Tajawal, sans-serif";
+  ctx.fillText(`التاريخ: ${fmtDate(data.sale_date)}`, 920, 190);
+  ctx.strokeStyle = "#2E7D5B";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(80, 220);
+  ctx.lineTo(920, 220);
+  ctx.stroke();
+
+  let y = 260;
+  rows.forEach(([label, value], index) => {
+    ctx.fillStyle = index % 2 === 0 ? "#f1f7f3" : "#ffffff";
+    ctx.fillRect(80, y - 34, 840, 52);
+    ctx.strokeStyle = "#d7e2db";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(80, y - 34, 840, 52);
+    const strong = label === "الإجمالي النهائي" || label === "المبلغ المتبقي";
+    ctx.fillStyle = strong ? "#2E7D5B" : "#1d2b24";
+    ctx.font = `${strong ? "700" : "400"} 21px Tajawal, sans-serif`;
+    ctx.fillText(label, 880, y);
+    ctx.textAlign = "left";
+    ctx.font = `700 22px Tajawal, sans-serif`;
+    ctx.fillText(value, 120, y);
+    ctx.textAlign = "right";
+    y += 54;
+  });
+
+  if (data.notes) {
+    y += 16;
+    ctx.fillStyle = "#1d2b24";
+    ctx.font = "700 21px Tajawal, sans-serif";
+    ctx.fillText("ملاحظات", 920, y);
+    ctx.font = "400 20px Tajawal, sans-serif";
+    const words = data.notes.split(" ");
+    let line = "";
+    y += 34;
+    words.forEach((word) => {
+      const next = line ? `${line} ${word}` : word;
+      if (ctx.measureText(next).width > 760) {
+        ctx.fillText(line, 920, y);
+        y += 28;
+        line = word;
+      } else {
+        line = next;
+      }
+    });
+    if (line) ctx.fillText(line, 920, y);
+  }
+
+  ctx.font = "400 18px Tajawal, sans-serif";
+  ctx.fillStyle = "#5c6b63";
+  ctx.fillText("توقيع المستلم: ............................", 920, canvas.height - 46);
+  ctx.textAlign = "left";
+  ctx.fillText("توقيع المزرعة: ............................", 80, canvas.height - 46);
+
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${data.invoice_number}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }, "image/png");
 }
 
 export function InvoiceActions({ data }: { data: InvoiceData }) {
@@ -206,7 +333,7 @@ export function InvoiceActions({ data }: { data: InvoiceData }) {
         <Printer /> طباعة الفاتورة
       </Button>
       <Button type="button" variant="outline" size="lg" onClick={() => downloadInvoice(data)}>
-        <Download /> حفظ الفاتورة
+        <ImageDown /> حفظ كصورة
       </Button>
     </div>
   );
