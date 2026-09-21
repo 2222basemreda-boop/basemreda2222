@@ -56,7 +56,9 @@ export type Database = {
           changed_at: string
           changed_by: string | null
           customer_id: string | null
+          event: string | null
           id: string
+          note: string | null
           status: Database["public"]["Enums"]["animal_status"]
         }
         Insert: {
@@ -64,7 +66,9 @@ export type Database = {
           changed_at?: string
           changed_by?: string | null
           customer_id?: string | null
+          event?: string | null
           id?: string
+          note?: string | null
           status: Database["public"]["Enums"]["animal_status"]
         }
         Update: {
@@ -72,7 +76,9 @@ export type Database = {
           changed_at?: string
           changed_by?: string | null
           customer_id?: string | null
+          event?: string | null
           id?: string
+          note?: string | null
           status?: Database["public"]["Enums"]["animal_status"]
         }
         Relationships: [
@@ -509,6 +515,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_reservation: {
+        Args: { _animal_id: string; _reason?: string }
+        Returns: undefined
+      }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
