@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Receipt, Pencil, Trash2, FileText } from "lucide-react";
+import { CalendarCheck, Plus, Receipt, Pencil, Trash2, FileText } from "lucide-react";
 import { salesQuery, type Sale } from "@/lib/queries";
-import { fmtMoney, fmtWeight, fmtDate, fmtNum } from "@/lib/format";
+import { fmtMoney, fmtWeight, fmtDate, fmtNum, invoiceTotal } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Loading, EmptyState, GlassCard, PaymentBadge, StatTile } from "@/components/farm/ui";
@@ -35,15 +35,18 @@ function SalesPage() {
 
   if (!auth.can("sales.read")) return <EmptyState title="ليس لديك صلاحية عرض المبيعات" />;
 
-  const total = (data ?? []).reduce((s, x) => s + Number(x.total_price ?? 0), 0);
-  const outstanding = (data ?? []).reduce((s, x) => s + (x.payment_status === "paid" ? 0 : Number(x.total_price ?? 0) - Number(x.paid_amount ?? 0)), 0);
+  const total = (data ?? []).reduce((s, x) => s + invoiceTotal(x.total_price, x.worker_tip, x.transportation, x.slaughtering), 0);
+  const outstanding = (data ?? []).reduce((s, x) => {
+    const finalTotal = invoiceTotal(x.total_price, x.worker_tip, x.transportation, x.slaughtering);
+    return s + (x.payment_status === "paid" ? 0 : finalTotal - Number(x.paid_amount ?? 0));
+  }, 0);
 
   return (
     <div>
       <PageHeader
         title="المبيعات"
         subtitle={`${fmtNum(data?.length ?? 0)} عملية بيع`}
-        action={auth.can("sales.write") && <Button asChild><Link to="/sales/new"><Plus /> بيع جديد</Link></Button>}
+        action={auth.can("sales.write") && <Button asChild><Link to="/sales/new"><Plus /> Sale / Reservation</Link></Button>}
       />
       <div className="mb-4 grid grid-cols-2 gap-2">
         <StatTile label="إجمالي المبيعات" value={fmtMoney(total)} />
@@ -53,11 +56,13 @@ function SalesPage() {
         <EmptyState
           icon={<Receipt />}
           title="لا توجد مبيعات بعد"
-          action={auth.can("sales.write") ? <Button asChild><Link to="/sales/new"><Plus /> بيع جديد</Link></Button> : undefined}
+          action={auth.can("sales.write") ? <Button asChild><Link to="/sales/new"><CalendarCheck /> Sale / Reservation</Link></Button> : undefined}
         />
       ) : (
         <div className="space-y-2">
-          {data.map((s) => (
+          {data.map((s) => {
+            const finalTotal = invoiceTotal(s.total_price, s.worker_tip, s.transportation, s.slaughtering);
+            return (
             <GlassCard key={s.id} className="flex items-center gap-3">
               <div className="min-w-0 flex-1 text-sm">
                 <p className="font-bold">
@@ -67,7 +72,7 @@ function SalesPage() {
                 <p className="num text-xs text-muted-foreground">{s.invoice_number ?? "—"}</p>
                 <p className="text-xs text-muted-foreground">{fmtWeight(s.weight)} × {fmtMoney(s.price_per_kg)} · {fmtDate(s.sale_date)}{s.payment_method ? ` · ${s.payment_method}` : ""}</p>
                 <div className="mt-1 flex items-center gap-2">
-                  <span className="num text-lg font-bold text-brand">{fmtMoney(s.total_price)}</span>
+                  <span className="num text-lg font-bold text-brand">{fmtMoney(finalTotal)}</span>
                   <PaymentBadge status={s.payment_status} />
                 </div>
                 <Button type="button" variant="secondary" size="sm" className="mt-2" onClick={() => setInvoice(invoiceFromSale(s))}>
@@ -79,7 +84,8 @@ function SalesPage() {
                 {auth.can("sales.delete") && <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => setDelId(s.id)} aria-label="حذف"><Trash2 /></Button>}
               </div>
             </GlassCard>
-          ))}
+          );
+          })}
         </div>
       )}
       <SaleDialog open={!!edit} onOpenChange={(o) => !o && setEdit(null)} initial={edit} />
