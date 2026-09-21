@@ -81,6 +81,7 @@ const animalSchema = z.object({
   current_weight: optNum,
   entry_date: z.string().min(1, "التاريخ مطلوب"),
   barn_id: z.string().nullable(),
+  customer_id: z.string().nullable(),
   supplier_name: optText(120),
   status: z.enum(["available", "reserved"]),
   notes: optText(1000),
@@ -89,7 +90,7 @@ const animalSchema = z.object({
 export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defaultCustomerId }: DialogProps & { initial?: Animal | null; defaultBarnId?: string | null; defaultCustomerId?: string | null }) {
   const blank = () => ({
     tag_number: "", color: "", current_weight: "", entry_date: today(),
-    barn_id: defaultBarnId ?? null, supplier_name: "", status: defaultCustomerId ? "reserved" as AnimalStatus : "available" as AnimalStatus, notes: "",
+    barn_id: defaultBarnId ?? null, customer_id: defaultCustomerId ?? null, supplier_name: "", status: defaultCustomerId ? "reserved" as AnimalStatus : "available" as AnimalStatus, notes: "",
   });
   const [f, setF] = useState(blank);
   useEffect(() => {
@@ -98,7 +99,7 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
       initial
         ? {
             tag_number: initial.tag_number, color: initial.color ?? "", current_weight: String(initial.current_weight ?? ""),
-            entry_date: initial.entry_date, barn_id: initial.barn_id, supplier_name: initial.supplier_name ?? "",
+            entry_date: initial.entry_date, barn_id: initial.barn_id, customer_id: initial.customer_id, supplier_name: initial.supplier_name ?? "",
             status: initial.status, notes: initial.notes ?? "",
           }
         : blank(),
@@ -114,9 +115,10 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
     const err = firstIssue(parsed);
     if (err || !parsed.success) throw new Error(err ?? "");
     const d = parsed.data;
+    if (d.status === "reserved" && !d.customer_id) throw new Error("استخدم خيار Reservation من المبيعات لحجز الحيوان لعميل");
     const payload = {
       tag_number: d.tag_number, color: d.color, entry_date: d.entry_date, barn_id: d.barn_id,
-      supplier_name: d.supplier_name, notes: d.notes,
+      customer_id: d.customer_id, supplier_name: d.supplier_name, notes: d.notes,
       ...(isSold ? {} : { status: d.status }),
     };
     if (initial) {
