@@ -635,7 +635,7 @@ export function useCancelReservation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ animalId, reason }: { animalId: string; reason?: string | null }) => {
-      const { error } = await supabase.rpc("cancel_reservation", { _animal_id: animalId, _reason: reason ?? null });
+      const { error } = await supabase.rpc("cancel_reservation", reason ? { _animal_id: animalId, _reason: reason } : { _animal_id: animalId });
       if (error) throw new Error(error.message);
     },
     onSuccess: async () => {
