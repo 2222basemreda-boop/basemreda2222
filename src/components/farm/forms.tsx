@@ -30,6 +30,8 @@ function useSave<TVars>(fn: (v: TVars) => Promise<void>, onDone: () => void, suc
 function friendly(msg: string) {
   if (/ANIMAL_NOT_AVAILABLE|ANIMAL_ALREADY_SOLD/.test(msg)) return "هذا العجل محجوز أو مباع بالفعل ولا يمكن بيعه مرة أخرى.";
   if (/ANIMAL_NOT_FOUND/.test(msg)) return "الحيوان غير موجود";
+  if (/NOT_RESERVED/.test(msg)) return "هذا الحيوان غير محجوز حالياً";
+  if (/NOT_AUTHORIZED/.test(msg)) return "ليس لديك صلاحية لتنفيذ هذا الإجراء";
   if (/duplicate key/.test(msg) && /tag_number/.test(msg)) return "رقم الحيوان مستخدم من قبل";
   if (/duplicate key/.test(msg) && /code/.test(msg)) return "كود العميل مستخدم من قبل";
   if (/duplicate key/.test(msg) && /barns_name/.test(msg)) return "اسم الحظيرة مستخدم من قبل";
@@ -622,6 +624,23 @@ export function useDeleteRow() {
     onSuccess: async () => {
       await qc.invalidateQueries();
       toast.success("تم الحذف");
+    },
+    onError: (e: Error) => toast.error(friendly(e.message)),
+  });
+}
+
+/* ---------- Cancel reservation (never deletes the animal) ---------- */
+
+export function useCancelReservation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ animalId, reason }: { animalId: string; reason?: string | null }) => {
+      const { error } = await supabase.rpc("cancel_reservation", reason ? { _animal_id: animalId, _reason: reason } : { _animal_id: animalId });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries();
+      toast.success("تم إلغاء الحجز — الحيوان متاح الآن");
     },
     onError: (e: Error) => toast.error(friendly(e.message)),
   });
