@@ -18,6 +18,8 @@ export const Route = createFileRoute("/_authenticated/barns/$id")({
       { name: "description", content: "الماشية داخل الحظيرة وسجل الحركات والتغذية." },
       { property: "og:title", content: "تفاصيل الحظيرة — Elemam Farm" },
       { property: "og:description", content: "تفاصيل الحظيرة." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: BarnDetail,

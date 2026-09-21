@@ -17,6 +17,8 @@ export const Route = createFileRoute("/_authenticated/customers/")({
       { name: "description", content: "قائمة عملاء Elemam Farm وحجوزاتهم ومشترياتهم." },
       { property: "og:title", content: "العملاء — Elemam Farm" },
       { property: "og:description", content: "قائمة العملاء." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: CustomersPage,

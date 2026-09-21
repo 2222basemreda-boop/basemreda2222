@@ -16,6 +16,8 @@ export const Route = createFileRoute("/_authenticated/barns/")({
       { name: "description", content: "إدارة حظائر Elemam Farm وعدد الماشية في كل حظيرة." },
       { property: "og:title", content: "الحظائر — Elemam Farm" },
       { property: "og:description", content: "إدارة الحظائر." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: BarnsPage,

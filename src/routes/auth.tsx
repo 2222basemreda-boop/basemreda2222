@@ -18,6 +18,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "سجّل الدخول إلى نظام إدارة Elemam Farm." },
       { property: "og:title", content: "تسجيل الدخول — Elemam Farm" },
       { property: "og:description", content: "الدخول إلى نظام إدارة الماشية لElemam Farm." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,

@@ -17,6 +17,8 @@ export const Route = createFileRoute("/_authenticated/customers/$id")({
       { name: "description", content: "ماشية العميل وحجوزاته ومشترياته وإجمالي الوزن." },
       { property: "og:title", content: "بيانات العميل — Elemam Farm" },
       { property: "og:description", content: "بطاقة العميل." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: CustomerDetail,
