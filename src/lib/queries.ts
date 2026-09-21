@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { invoiceTotal } from "@/lib/format";
 
 export type Barn = Tables<"barns">;
 export type Customer = Tables<"customers">;
@@ -150,7 +151,7 @@ export const dashboardQuery = queryOptions({
     const [animals, barns, sales, logs] = await Promise.all([
       supabase.from("animals").select("id, status, current_weight, barn_id, tag_number, color, created_at, barn:barns(id,name)").order("created_at", { ascending: false }),
       supabase.from("barns").select("id, name, capacity").order("name"),
-      supabase.from("sales").select("total_price, sale_date, payment_status, paid_amount").gte("sale_date", monthISO),
+      supabase.from("sales").select("total_price, worker_tip, transportation, slaughtering, sale_date, payment_status, paid_amount").gte("sale_date", monthISO),
       supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(8),
     ]);
     const a = throwIf(animals);
@@ -179,8 +180,11 @@ export const dashboardQuery = queryOptions({
       sales: s
         ? {
             count: s.length,
-            total: s.reduce((sum, x) => sum + Number(x.total_price ?? 0), 0),
-            paid: s.reduce((sum, x) => sum + (x.payment_status === "paid" ? Number(x.total_price ?? 0) : Number(x.paid_amount ?? 0)), 0),
+            total: s.reduce((sum, x) => sum + invoiceTotal(x.total_price, x.worker_tip, x.transportation, x.slaughtering), 0),
+            paid: s.reduce((sum, x) => {
+              const total = invoiceTotal(x.total_price, x.worker_tip, x.transportation, x.slaughtering);
+              return sum + (x.payment_status === "paid" ? total : Number(x.paid_amount ?? 0));
+            }, 0),
           }
         : null,
     };
