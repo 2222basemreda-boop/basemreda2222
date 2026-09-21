@@ -125,11 +125,9 @@ function NewSalePage() {
       }
 
       if (flow === "reservation") {
-        const { error: reserveError } = await supabase.rpc("reserve_animal", {
-          _animal_id: f.animal_id,
-          _customer_id: customerId,
-          _note: f.notes.trim() || undefined,
-        });
+        const note = f.notes.trim();
+        const args = note ? { _animal_id: f.animal_id, _customer_id: customerId, _note: note } : { _animal_id: f.animal_id, _customer_id: customerId };
+        const { error: reserveError } = await supabase.rpc("reserve_animal", args);
         if (reserveError) throw new Error(reserveError.message);
         return null;
       }
