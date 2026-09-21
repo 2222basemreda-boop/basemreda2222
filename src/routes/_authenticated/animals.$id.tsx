@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Scale, ArrowLeftRight, Stethoscope, Receipt, Pencil, Trash2, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ArrowRight, Scale, ArrowLeftRight, Stethoscope, Receipt, Pencil, Trash2, TrendingUp, TrendingDown, Minus, CalendarX } from "lucide-react";
 import { animalQuery } from "@/lib/queries";
 import { fmtWeight, fmtDate, fmtNum, fmtMoney } from "@/lib/format";
 import { STATUS_LABELS } from "@/lib/labels";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Loading, EmptyState, StatusBadge, PaymentBadge, GlassCard } from "@/components/farm/ui";
-import { AnimalDialog, WeightDialog, MoveBarnDialog, TreatmentDialog, SaleDialog, useDeleteRow } from "@/components/farm/forms";
+import { AnimalDialog, WeightDialog, MoveBarnDialog, TreatmentDialog, SaleDialog, useDeleteRow, useCancelReservation } from "@/components/farm/forms";
 import { ConfirmDialog } from "@/components/farm/FormDialog";
 import { cn } from "@/lib/utils";
 
@@ -32,8 +32,9 @@ function AnimalDetail() {
   const navigate = useNavigate();
   const { data, isLoading } = useQuery(animalQuery(id));
   const [tab, setTab] = useState<Tab>("weights");
-  const [dlg, setDlg] = useState<null | "edit" | "weight" | "move" | "treat" | "sale" | "delete">(null);
+  const [dlg, setDlg] = useState<null | "edit" | "weight" | "move" | "treat" | "sale" | "delete" | "cancelBooking">(null);
   const del = useDeleteRow();
+  const cancelBooking = useCancelReservation();
 
   if (isLoading) return <Loading rows={6} />;
   if (!data) return <EmptyState title="الحيوان غير موجود" action={<Button asChild variant="outline"><Link to="/animals">العودة للقائمة</Link></Button>} />;
@@ -76,6 +77,11 @@ function AnimalDetail() {
           {canWrite && <Button size="lg" variant="secondary" onClick={() => setDlg("move")}><ArrowLeftRight /> نقل حظيرة</Button>}
           {canWrite && <Button size="lg" variant="outline" onClick={() => setDlg("treat")}><Stethoscope /> تسجيل علاج</Button>}
           {canSell && <Button size="lg" variant="amber" onClick={() => setDlg("sale")}><Receipt /> بيع</Button>}
+          {canWrite && animal.status === "reserved" && (
+            <Button size="lg" variant="outline" className="col-span-2 border-destructive/40 text-destructive hover:bg-destructive/10 sm:col-span-2" onClick={() => setDlg("cancelBooking")}>
+              <CalendarX /> إلغاء الحجز
+            </Button>
+          )}
         </div>
       )}
       {(canWrite || auth.can("animals.delete")) && (
