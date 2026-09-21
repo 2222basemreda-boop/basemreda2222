@@ -626,3 +626,20 @@ export function useDeleteRow() {
     onError: (e: Error) => toast.error(friendly(e.message)),
   });
 }
+
+/* ---------- Cancel reservation (never deletes the animal) ---------- */
+
+export function useCancelReservation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ animalId, reason }: { animalId: string; reason?: string | null }) => {
+      const { error } = await supabase.rpc("cancel_reservation", { _animal_id: animalId, _reason: reason ?? null });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries();
+      toast.success("تم إلغاء الحجز — الحيوان متاح الآن");
+    },
+    onError: (e: Error) => toast.error(friendly(e.message)),
+  });
+}
