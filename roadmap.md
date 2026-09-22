@@ -1,8 +1,7 @@
 # Roadmap
 
-- [ ] Update visible app branding to Elemam Farm.
-- [ ] Add sale/reservation options in Sales.
-- [ ] Add invoice charges for workers' tip, transportation, and slaughtering.
-- [ ] Replace Add Animal customer field with supplier name.
-- [ ] Add invoice image download for saved and printed invoices.
-- [ ] Verify database and app build status.
+- [ ] Replace the remaining English transaction and cost labels with Arabic.
+- [ ] Add a professional cattle icon for the app and browser shortcut.
+- [ ] Add separate treatment and vaccination records with two dose dates.
+- [ ] Make reservations capture and save the same details as sales.
+- [ ] Verify existing data, database behavior, and the mobile interface.

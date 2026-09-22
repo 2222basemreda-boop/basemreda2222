@@ -115,7 +115,7 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
     const err = firstIssue(parsed);
     if (err || !parsed.success) throw new Error(err ?? "");
     const d = parsed.data;
-    if (d.status === "reserved" && !d.customer_id) throw new Error("استخدم خيار Reservation من المبيعات لحجز الحيوان لعميل");
+    if (d.status === "reserved" && !d.customer_id) throw new Error("استخدم خيار حجز من المبيعات لحجز الحيوان لعميل");
     const payload = {
       tag_number: d.tag_number, color: d.color, entry_date: d.entry_date, barn_id: d.barn_id,
       customer_id: d.customer_id, supplier_name: d.supplier_name, notes: d.notes,
@@ -157,7 +157,7 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
           {barns.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </NativeSelect>
       </Field>
-      <Field label="Supplier Name">
+      <Field label="اسم المورد">
         <Input value={f.supplier_name} onChange={(e) => set("supplier_name")(e.target.value)} placeholder="اسم المورد" />
       </Field>
       {!isSold && (
@@ -283,8 +283,10 @@ export function MoveBarnDialog({ open, onOpenChange, animal }: DialogProps & { a
 /* ---------- Treatment ---------- */
 
 const treatmentSchema = z.object({
+  record_type: z.enum(["treatment", "vaccination"]),
   animal_id: z.string().min(1, "اختر الحيوان"),
   treatment_date: z.string().min(1, "التاريخ مطلوب"),
+  second_dose_date: z.string().nullable(),
   diagnosis: z.string().trim().min(1, "المشكلة / التشخيص مطلوب").max(300),
   medicine: optText(200),
   dose: optText(100),
@@ -292,11 +294,11 @@ const treatmentSchema = z.object({
 });
 
 export function TreatmentDialog({ open, onOpenChange, animalId, initial }: DialogProps & { animalId?: string; initial?: Treatment | null }) {
-  const blank = () => ({ animal_id: animalId ?? "", treatment_date: today(), diagnosis: "", medicine: "", dose: "", notes: "" });
+  const blank = () => ({ record_type: "treatment" as "treatment" | "vaccination", animal_id: animalId ?? "", treatment_date: today(), second_dose_date: "", diagnosis: "", medicine: "", dose: "", notes: "" });
   const [f, setF] = useState(blank);
   useEffect(() => {
     if (!open) return;
-    setF(initial ? { animal_id: initial.animal_id, treatment_date: initial.treatment_date, diagnosis: initial.diagnosis, medicine: initial.medicine ?? "", dose: initial.dose ?? "", notes: initial.notes ?? "" } : blank());
+    setF(initial ? { record_type: initial.record_type === "vaccination" ? "vaccination" : "treatment", animal_id: initial.animal_id, treatment_date: initial.first_dose_date ?? initial.treatment_date, second_dose_date: initial.second_dose_date ?? "", diagnosis: initial.diagnosis, medicine: initial.medicine ?? "", dose: initial.dose ?? "", notes: initial.notes ?? "" } : blank());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, animalId, initial?.id]);
   const animals = useAnimalOptions();
@@ -307,31 +309,41 @@ export function TreatmentDialog({ open, onOpenChange, animalId, initial }: Dialo
     const err = firstIssue(parsed);
     if (err || !parsed.success) throw new Error(err ?? "");
     const d = parsed.data;
+    const payload = { ...d, first_dose_date: d.record_type === "vaccination" ? d.treatment_date : null, second_dose_date: d.record_type === "vaccination" ? d.second_dose_date || null : null };
     if (initial) {
-      const { error } = await supabase.from("treatments").update(d).eq("id", initial.id);
+      const { error } = await supabase.from("treatments").update(payload).eq("id", initial.id);
       if (error) throw new Error(error.message);
     } else {
       const { data: u } = await supabase.auth.getUser();
-      const { error } = await supabase.from("treatments").insert({ ...d, created_by: u.user?.id ?? null });
+      const { error } = await supabase.from("treatments").insert({ ...payload, created_by: u.user?.id ?? null });
       if (error) throw new Error(error.message);
     }
-  }, () => onOpenChange(false), "تم حفظ العلاج");
+  }, () => onOpenChange(false), f.record_type === "vaccination" ? "تم حفظ التحصين" : "تم حفظ العلاج");
 
   return (
-    <FormDialog open={open} onOpenChange={onOpenChange} title={initial ? "تعديل العلاج" : "تسجيل علاج"} onSubmit={() => save.mutate(undefined)} submitting={save.isPending}>
+    <FormDialog open={open} onOpenChange={onOpenChange} title={initial ? `تعديل ${f.record_type === "vaccination" ? "التحصين" : "العلاج"}` : `تسجيل ${f.record_type === "vaccination" ? "تحصين" : "علاج"}`} onSubmit={() => save.mutate(undefined)} submitting={save.isPending}>
+      <Field label="نوع السجل" required>
+        <div className="grid grid-cols-2 gap-2">
+          <button type="button" onClick={() => up("record_type")("treatment")} className={`tap rounded-2xl border text-sm font-bold ${f.record_type === "treatment" ? "border-brand bg-brand text-primary-foreground" : "glass border-transparent"}`}>علاج</button>
+          <button type="button" onClick={() => up("record_type")("vaccination")} className={`tap rounded-2xl border text-sm font-bold ${f.record_type === "vaccination" ? "border-brand bg-brand text-primary-foreground" : "glass border-transparent"}`}>تحصين</button>
+        </div>
+      </Field>
       {!animalId && !initial && (
         <Field label="الحيوان" required>
           <SearchSelect options={animals} value={f.animal_id || null} onChange={(v) => up("animal_id")(v ?? "")} placeholder="اختر رقم الحيوان" allowClear={false} />
         </Field>
       )}
-      <Field label="تاريخ العلاج" required>
+      <Field label={f.record_type === "vaccination" ? "تاريخ الجرعة الأولى" : "تاريخ العلاج"} required>
         <Input value={f.treatment_date} onChange={(e) => up("treatment_date")(e.target.value)} type="date" className="num" />
       </Field>
-      <Field label="المشكلة / التشخيص" required>
-        <Input value={f.diagnosis} onChange={(e) => up("diagnosis")(e.target.value)} placeholder="مثال: ارتفاع حرارة" autoFocus />
+      {f.record_type === "vaccination" && <Field label="تاريخ الجرعة الثانية">
+        <Input value={f.second_dose_date} onChange={(e) => up("second_dose_date")(e.target.value)} type="date" className="num" min={f.treatment_date} />
+      </Field>}
+      <Field label={f.record_type === "vaccination" ? "اسم التحصين" : "المشكلة / التشخيص"} required>
+        <Input value={f.diagnosis} onChange={(e) => up("diagnosis")(e.target.value)} placeholder={f.record_type === "vaccination" ? "مثال: الحمى القلاعية" : "مثال: ارتفاع حرارة"} autoFocus />
       </Field>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="الدواء">
+        <Field label={f.record_type === "vaccination" ? "اللقاح" : "الدواء"}>
           <Input value={f.medicine} onChange={(e) => up("medicine")(e.target.value)} />
         </Field>
         <Field label="الجرعة">
@@ -432,13 +444,13 @@ export function SaleDialog({ open, onOpenChange, animal, initial }: DialogProps 
         <span className="num text-xl text-brand">{fmtMoney(baseTotal)}</span>
       </div>
       <div className="grid grid-cols-3 gap-3">
-        <Field label="Workers’ Tip">
+        <Field label="إكرامية عمال">
           <Input value={f.worker_tip} onChange={(e) => up("worker_tip")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
         </Field>
-        <Field label="Transportation">
+        <Field label="نقل">
           <Input value={f.transportation} onChange={(e) => up("transportation")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
         </Field>
-        <Field label="Slaughtering">
+        <Field label="دبح">
           <Input value={f.slaughtering} onChange={(e) => up("slaughtering")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
         </Field>
       </div>

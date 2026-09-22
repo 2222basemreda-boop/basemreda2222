@@ -111,9 +111,9 @@ export function InvoiceView({ data }: { data: InvoiceData }) {
       <div className="rounded-2xl border border-border/60 p-3">
         <p className="mb-1 text-xs font-bold text-brand">الحساب</p>
         <Row label="إجمالي الوزن والسعر" value={fmtMoney(data.base_total)} />
-        <Row label="Workers’ Tip" value={fmtMoney(data.worker_tip)} />
-        <Row label="Transportation" value={fmtMoney(data.transportation)} />
-        <Row label="Slaughtering" value={fmtMoney(data.slaughtering)} />
+        <Row label="إكرامية عمال" value={fmtMoney(data.worker_tip)} />
+        <Row label="نقل" value={fmtMoney(data.transportation)} />
+        <Row label="دبح" value={fmtMoney(data.slaughtering)} />
         <Row label="الإجمالي النهائي" value={fmtMoney(data.total)} strong />
         <Row label="المدفوع" value={fmtMoney(data.paid)} />
         <Row label="المتبقي" value={fmtMoney(data.remaining)} strong />
@@ -184,9 +184,9 @@ th{background:#f1f7f3;width:38%;font-weight:700}
 <table class="totals">
   ${rows([
     ["إجمالي الوزن والسعر", fmtMoney(data.base_total)],
-    ["Workers’ Tip", fmtMoney(data.worker_tip)],
-    ["Transportation", fmtMoney(data.transportation)],
-    ["Slaughtering", fmtMoney(data.slaughtering)],
+    ["إكرامية عمال", fmtMoney(data.worker_tip)],
+    ["نقل", fmtMoney(data.transportation)],
+    ["دبح", fmtMoney(data.slaughtering)],
   ])}
   <tr class="grand"><th>الإجمالي النهائي</th><td>${esc(fmtMoney(data.total))}</td></tr>
   ${rows([
@@ -225,9 +225,9 @@ function canvasRows(data: InvoiceData): [string, string][] {
     ["الوزن", fmtWeight(data.weight)],
     ["سعر الكيلو", fmtMoney(data.price_per_kg)],
     ["إجمالي الوزن والسعر", fmtMoney(data.base_total)],
-    ["Workers’ Tip", fmtMoney(data.worker_tip)],
-    ["Transportation", fmtMoney(data.transportation)],
-    ["Slaughtering", fmtMoney(data.slaughtering)],
+    ["إكرامية عمال", fmtMoney(data.worker_tip)],
+    ["نقل", fmtMoney(data.transportation)],
+    ["دبح", fmtMoney(data.slaughtering)],
     ["الإجمالي النهائي", fmtMoney(data.total)],
     ["المبلغ المدفوع", fmtMoney(data.paid)],
     ["المبلغ المتبقي", fmtMoney(data.remaining)],

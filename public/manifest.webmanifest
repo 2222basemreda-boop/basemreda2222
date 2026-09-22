@@ -1,0 +1,14 @@
+{
+  "name": "Elemam Farm",
+  "short_name": "Elemam Farm",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eff5f1",
+  "theme_color": "#2e7d5b",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

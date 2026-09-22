@@ -59,7 +59,15 @@ export type Database = {
           event: string | null
           id: string
           note: string | null
+          paid_amount: number
+          payment_method: string | null
+          price_per_kg: number | null
+          reservation_weight: number | null
+          slaughtering: number
           status: Database["public"]["Enums"]["animal_status"]
+          transaction_date: string | null
+          transportation: number
+          worker_tip: number
         }
         Insert: {
           animal_id: string
@@ -69,7 +77,15 @@ export type Database = {
           event?: string | null
           id?: string
           note?: string | null
+          paid_amount?: number
+          payment_method?: string | null
+          price_per_kg?: number | null
+          reservation_weight?: number | null
+          slaughtering?: number
           status: Database["public"]["Enums"]["animal_status"]
+          transaction_date?: string | null
+          transportation?: number
+          worker_tip?: number
         }
         Update: {
           animal_id?: string
@@ -79,7 +95,15 @@ export type Database = {
           event?: string | null
           id?: string
           note?: string | null
+          paid_amount?: number
+          payment_method?: string | null
+          price_per_kg?: number | null
+          reservation_weight?: number | null
+          slaughtering?: number
           status?: Database["public"]["Enums"]["animal_status"]
+          transaction_date?: string | null
+          transportation?: number
+          worker_tip?: number
         }
         Relationships: [
           {
@@ -429,9 +453,12 @@ export type Database = {
           created_by: string | null
           diagnosis: string
           dose: string | null
+          first_dose_date: string | null
           id: string
           medicine: string | null
           notes: string | null
+          record_type: string
+          second_dose_date: string | null
           treatment_date: string
         }
         Insert: {
@@ -440,9 +467,12 @@ export type Database = {
           created_by?: string | null
           diagnosis: string
           dose?: string | null
+          first_dose_date?: string | null
           id?: string
           medicine?: string | null
           notes?: string | null
+          record_type?: string
+          second_dose_date?: string | null
           treatment_date?: string
         }
         Update: {
@@ -451,9 +481,12 @@ export type Database = {
           created_by?: string | null
           diagnosis?: string
           dose?: string | null
+          first_dose_date?: string | null
           id?: string
           medicine?: string | null
           notes?: string | null
+          record_type?: string
+          second_dose_date?: string | null
           treatment_date?: string
         }
         Relationships: [
@@ -549,6 +582,22 @@ export type Database = {
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       reserve_animal: {
         Args: { _animal_id: string; _customer_id: string; _note?: string }
+        Returns: undefined
+      }
+      reserve_animal_details: {
+        Args: {
+          _animal_id: string
+          _customer_id: string
+          _note?: string
+          _paid_amount?: number
+          _payment_method?: string
+          _price_per_kg: number
+          _slaughtering?: number
+          _transaction_date?: string
+          _transportation?: number
+          _weight: number
+          _worker_tip?: number
+        }
         Returns: undefined
       }
     }
