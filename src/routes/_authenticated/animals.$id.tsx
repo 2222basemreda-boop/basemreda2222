@@ -49,7 +49,7 @@ function AnimalDetail() {
     { key: "weights", label: "الأوزان", count: weights.length },
     { key: "moves", label: "الحركات", count: moves.length },
     { key: "customers", label: "العملاء", count: customerHistory.length },
-    { key: "treatments", label: "العلاجات", count: treatments.length },
+    { key: "treatments", label: "العلاج والتحصين", count: treatments.length },
     { key: "sales", label: "البيع", count: sales.length, show: auth.can("sales.read") },
   ];
 
@@ -157,14 +157,15 @@ function AnimalDetail() {
           )
         )}
         {tab === "treatments" && (
-          treatments.length === 0 ? <EmptyState title="لا توجد علاجات مسجلة" /> : (
+          treatments.length === 0 ? <EmptyState title="لا توجد سجلات علاج أو تحصين" /> : (
             <div className="space-y-2">
               {treatments.map((t) => (
                 <GlassCard key={t.id} className="text-sm">
                   <div className="flex items-center justify-between">
-                    <p className="font-bold">{t.diagnosis}</p>
-                    <span className="text-xs text-muted-foreground">{fmtDate(t.treatment_date)}</span>
+                    <p className="font-bold">{t.record_type === "vaccination" ? "تحصين" : "علاج"} · {t.diagnosis}</p>
+                    <span className="text-xs text-muted-foreground">{fmtDate(t.first_dose_date ?? t.treatment_date)}</span>
                   </div>
+                  {t.record_type === "vaccination" && t.second_dose_date && <p className="mt-1 text-muted-foreground">الجرعة الثانية: {fmtDate(t.second_dose_date)}</p>}
                   {(t.medicine || t.dose) && <p className="mt-1 text-muted-foreground">{t.medicine}{t.dose ? ` — ${t.dose}` : ""}</p>}
                   {t.notes && <p className="mt-1 text-xs text-muted-foreground">{t.notes}</p>}
                 </GlassCard>

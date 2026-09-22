@@ -53,7 +53,7 @@ function NewSalePage() {
     transportation: "",
     slaughtering: "",
     paid_amount: "",
-    payment_method: PAYMENT_METHODS[0]!,
+    payment_method: PAYMENT_METHODS[0] ?? "نقدي",
     sale_date: today(),
     notes: "",
   });
@@ -99,11 +99,9 @@ function NewSalePage() {
       if (!f.animal_id) throw new Error(flow === "sale" ? "اختر العجل المطلوب بيعه" : "اختر العجل المطلوب حجزه");
       const picked = (animals ?? []).find((a) => a.id === f.animal_id);
       if (picked && picked.status !== "available") throw new Error(BUSY_MSG);
-      if (flow === "sale") {
-        if ((toNum(f.weight) ?? 0) <= 0) throw new Error("أدخل وزن العجل");
-        if ((toNum(f.price_per_kg) ?? 0) <= 0) throw new Error("أدخل سعر الكيلو");
-        if (!f.sale_date) throw new Error("أدخل تاريخ البيع");
-      }
+      if ((toNum(f.weight) ?? 0) <= 0) throw new Error("أدخل وزن العجل");
+      if ((toNum(f.price_per_kg) ?? 0) <= 0) throw new Error("أدخل سعر الكيلو");
+      if (!f.sale_date) throw new Error(flow === "sale" ? "أدخل تاريخ البيع" : "أدخل تاريخ الحجز");
 
       let customerId = f.customer_id;
       if (mode === "new") {
@@ -125,9 +123,22 @@ function NewSalePage() {
       }
 
       if (flow === "reservation") {
-        const note = f.notes.trim();
-        const args = note ? { _animal_id: f.animal_id, _customer_id: customerId, _note: note } : { _animal_id: f.animal_id, _customer_id: customerId };
-        const { error: reserveError } = await supabase.rpc("reserve_animal", args);
+        const weight = toNum(f.weight);
+        const pricePerKg = toNum(f.price_per_kg);
+        if (weight === null || pricePerKg === null) throw new Error("أدخل وزن العجل وسعر الكيلو");
+        const { error: reserveError } = await supabase.rpc("reserve_animal_details", {
+          _animal_id: f.animal_id,
+          _customer_id: customerId,
+          _weight: weight,
+          _price_per_kg: pricePerKg,
+          _worker_tip: toNum(f.worker_tip) ?? 0,
+          _transportation: toNum(f.transportation) ?? 0,
+          _slaughtering: toNum(f.slaughtering) ?? 0,
+          _paid_amount: paid,
+          _payment_method: f.payment_method,
+          _transaction_date: f.sale_date,
+          ...(f.notes.trim() ? { _note: f.notes.trim() } : {}),
+        });
         if (reserveError) throw new Error(reserveError.message);
         return null;
       }
@@ -216,10 +227,10 @@ function NewSalePage() {
           <SectionTitle className="mt-0">نوع العملية</SectionTitle>
           <div className="grid grid-cols-2 gap-2">
             <Button type="button" variant={flow === "sale" ? "default" : "outline"} size="lg" onClick={() => setFlow("sale")}>
-              <Save /> Sale
+              <Save /> بيع
             </Button>
             <Button type="button" variant={flow === "reservation" ? "default" : "outline"} size="lg" onClick={() => setFlow("reservation")}>
-              <CalendarCheck /> Reservation
+              <CalendarCheck /> حجز
             </Button>
           </div>
         </GlassCard>
@@ -281,20 +292,20 @@ function NewSalePage() {
           </div>
         </GlassCard>
 
-        {flow === "sale" && <GlassCard className="space-y-3">
-          <SectionTitle className="mt-0">الدفع</SectionTitle>
+        <GlassCard className="space-y-3">
+          <SectionTitle className="mt-0">{flow === "sale" ? "الدفع" : "بيانات الحجز والدفع"}</SectionTitle>
           <div className="glass flex items-center justify-between rounded-2xl px-4 py-3">
             <span className="text-sm text-muted-foreground">إجمالي الوزن والسعر</span>
             <span className="num text-xl text-brand">{fmtMoney(baseTotal)}</span>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <Field label="Workers’ Tip">
+            <Field label="إكرامية عمال">
               <Input value={f.worker_tip} onChange={(e) => up("worker_tip")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
             </Field>
-            <Field label="Transportation">
+            <Field label="نقل">
               <Input value={f.transportation} onChange={(e) => up("transportation")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
             </Field>
-            <Field label="Slaughtering">
+            <Field label="دبح">
               <Input value={f.slaughtering} onChange={(e) => up("slaughtering")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
             </Field>
           </div>
@@ -317,26 +328,14 @@ function NewSalePage() {
             <span className="num text-xl text-amber">{fmtMoney(remaining)}</span>
           </div>
           <div className="grid grid-cols-1 gap-3">
-            <Field label="تاريخ البيع" required>
+            <Field label={flow === "sale" ? "تاريخ البيع" : "تاريخ الحجز"} required>
               <Input value={f.sale_date} onChange={(e) => up("sale_date")(e.target.value)} type="date" className="num" />
             </Field>
             <Field label="ملاحظات">
               <Textarea value={f.notes} onChange={(e) => up("notes")(e.target.value)} rows={2} />
             </Field>
           </div>
-        </GlassCard>}
-
-        {flow === "reservation" && (
-          <GlassCard className="space-y-3">
-            <SectionTitle className="mt-0">الحجز</SectionTitle>
-            <Field label="تاريخ الحجز">
-              <Input value={f.sale_date} onChange={(e) => up("sale_date")(e.target.value)} type="date" className="num" />
-            </Field>
-            <Field label="ملاحظات">
-              <Textarea value={f.notes} onChange={(e) => up("notes")(e.target.value)} rows={2} />
-            </Field>
-          </GlassCard>
-        )}
+        </GlassCard>
 
         <Button type="submit" size="lg" className="w-full" disabled={save.isPending}>
           {save.isPending ? <Loader2 className="animate-spin" /> : flow === "sale" ? <Save /> : <CalendarCheck />} {flow === "sale" ? "حفظ البيع وإصدار الفاتورة" : "حفظ الحجز"}

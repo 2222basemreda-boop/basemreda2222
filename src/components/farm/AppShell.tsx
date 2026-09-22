@@ -30,7 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/customers", label: "العملاء", icon: Users },
     { to: "/weights", label: "الأوزان", icon: Scale },
     { to: "/feeding", label: "التغذية", icon: Wheat },
-    { to: "/treatments", label: "العلاجات", icon: Stethoscope },
+    { to: "/treatments", label: "العلاج والتحصين", icon: Stethoscope },
     { to: "/activity", label: "سجل النشاط", icon: History, show: auth.can("logs.read") },
     { to: "/users", label: "المستخدمون", icon: ShieldCheck, show: auth.can("users.manage") },
   ].filter((i) => i.show !== false);
@@ -65,9 +65,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-3 p-4 md:flex">
         <div className="glass-strong flex items-center gap-3 rounded-3xl p-4">
-          <div className="grid size-11 place-items-center rounded-2xl tile-brand">
-            <Beef className="size-6" />
-          </div>
+          <img src="/elemam-farm-icon.png" alt="" width={1024} height={1024} className="size-11 rounded-2xl object-cover" />
           <div>
             <p className="font-display text-lg font-extrabold leading-tight">Elemam Farm</p>
             {syncBadge}
@@ -94,9 +92,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile header */}
       <header className="glass-strong sticky top-0 z-30 flex items-center justify-between px-4 py-3 md:hidden">
         <div className="flex items-center gap-2">
-          <div className="grid size-9 place-items-center rounded-xl tile-brand">
-            <Beef className="size-5" />
-          </div>
+          <img src="/elemam-farm-icon.png" alt="" width={1024} height={1024} className="size-9 rounded-xl object-cover" />
           <span className="font-display text-base font-extrabold">Elemam Farm</span>
         </div>
         {syncBadge}

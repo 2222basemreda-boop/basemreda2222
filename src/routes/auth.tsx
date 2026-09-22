@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Beef, Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { bootstrapAdmin } from "@/lib/users.functions";
@@ -40,9 +40,7 @@ function AuthPage() {
     <div className="flex min-h-dvh items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="grid size-16 place-items-center rounded-3xl tile-brand">
-            <Beef className="size-8" />
-          </div>
+          <img src="/elemam-farm-icon.png" alt="شعار Elemam Farm" width={1024} height={1024} className="size-20 rounded-3xl object-cover shadow-float" />
           <h1 className="mt-4 text-3xl">Elemam Farm</h1>
           <p className="mt-1 text-sm text-muted-foreground">نظام إدارة الماشية</p>
         </div>
