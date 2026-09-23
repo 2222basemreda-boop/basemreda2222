@@ -151,7 +151,7 @@ export const dashboardQuery = queryOptions({
     const [animals, barns, sales, logs] = await Promise.all([
       supabase.from("animals").select("id, status, current_weight, barn_id, tag_number, color, created_at, barn:barns(id,name)").order("created_at", { ascending: false }),
       supabase.from("barns").select("id, name, capacity").order("name"),
-      supabase.from("sales").select("total_price, worker_tip, transportation, slaughtering, sale_date, payment_status, paid_amount").gte("sale_date", monthISO),
+      supabase.from("sales").select("total_price, worker_tip, transportation, slaughtering, sale_date, payment_status, paid_amount").is("cancelled_at", null).gte("sale_date", monthISO),
       supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(8),
     ]);
     const a = throwIf(animals);

@@ -43,6 +43,13 @@
       "when": 1790062872167,
       "tag": "0005_vaccinations_and_reservation_details",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790145403059,
+      "tag": "0006_cancel_sale",
+      "breakpoints": true
     }
   ]
 }

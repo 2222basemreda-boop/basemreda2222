@@ -65,7 +65,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-3 p-4 md:flex">
         <div className="glass-strong flex items-center gap-3 rounded-3xl p-4">
-          <img src="/elemam-farm-icon.png" alt="" width={1024} height={1024} className="size-11 rounded-2xl object-cover" />
+          <img src="/elemam-farm-logo.png" alt="" width={1024} height={1024} className="size-11 rounded-2xl object-cover" />
           <div>
             <p className="font-display text-lg font-extrabold leading-tight">Elemam Farm</p>
             {syncBadge}
@@ -92,7 +92,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile header */}
       <header className="glass-strong sticky top-0 z-30 flex items-center justify-between px-4 py-3 md:hidden">
         <div className="flex items-center gap-2">
-          <img src="/elemam-farm-icon.png" alt="" width={1024} height={1024} className="size-9 rounded-xl object-cover" />
+          <img src="/elemam-farm-logo.png" alt="" width={1024} height={1024} className="size-9 rounded-xl object-cover" />
           <span className="font-display text-base font-extrabold">Elemam Farm</span>
         </div>
         {syncBadge}
