@@ -58,18 +58,22 @@ function AnimalDetail() {
       <Link to="/animals" className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-brand"><ArrowRight className="size-4" /> كل الماشية</Link>
       <PageHeader
         title={`حيوان رقم ${animal.tag_number}`}
-        subtitle={`${animal.color || "بدون لون"} · دخل المزرعة ${fmtDate(animal.entry_date)}`}
         action={<StatusBadge status={animal.status} className="px-3 py-1.5 text-xs" />}
       />
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <div className="tile-brand col-span-2 rounded-3xl p-4 sm:col-span-1">
+        <div className="tile-brand rounded-3xl p-4">
           <p className="text-xs opacity-90">الوزن الحالي</p>
           <p className="num mt-1 text-3xl">{fmtWeight(animal.current_weight)}</p>
         </div>
+        <Info label="اللون" value={animal.color || "بدون لون"} />
+        <Info label="تاريخ الدخول" value={fmtDate(animal.entry_date)} />
+        <Info label="اسم المورد" value={animal.supplier_name || "بدون مورد"} />
         <Info label="الحظيرة" value={animal.barn ? <Link to="/barns/$id" params={{ id: animal.barn.id }} className="text-brand">{animal.barn.name}</Link> : "بدون حظيرة"} />
-        <Info label="العميل" value={animal.customer ? <Link to="/customers/$id" params={{ id: animal.customer.id }} className="text-brand">{animal.customer.name}</Link> : "—"} sub={animal.customer?.code} />
         <Info label="الحالة" value={STATUS_LABELS[animal.status]} />
+        {animal.customer && (
+          <Info label="العميل" value={<Link to="/customers/$id" params={{ id: animal.customer.id }} className="text-brand">{animal.customer.name}</Link>} sub={animal.customer.code} />
+        )}
       </div>
       {animal.notes && <GlassCard className="mt-2 text-sm"><span className="font-bold">ملاحظات: </span>{animal.notes}</GlassCard>}
 
