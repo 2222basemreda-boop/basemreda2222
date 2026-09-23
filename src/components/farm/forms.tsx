@@ -676,3 +676,20 @@ export function useCancelReservation() {
     onError: (e: Error) => toast.error(friendly(e.message)),
   });
 }
+
+/* ---------- Cancel sale (never deletes the animal or its data) ---------- */
+
+export function useCancelSale() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ saleId, reason }: { saleId: string; reason?: string | null }) => {
+      const { error } = await supabase.rpc("cancel_sale", reason ? { _sale_id: saleId, _reason: reason } : { _sale_id: saleId });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries();
+      toast.success("تم إلغاء البيع — العجل متاح الآن");
+    },
+    onError: (e: Error) => toast.error(friendly(e.message)),
+  });
+}

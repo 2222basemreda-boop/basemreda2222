@@ -40,7 +40,7 @@ function AuthPage() {
     <div className="flex min-h-dvh items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
-          <img src="/elemam-farm-icon.png" alt="شعار Elemam Farm" width={1024} height={1024} className="size-20 rounded-3xl object-cover shadow-float" />
+          <img src="/elemam-farm-logo.png" alt="شعار Elemam Farm" width={1024} height={1024} className="size-20 rounded-3xl object-cover shadow-float" />
           <h1 className="mt-4 text-3xl">Elemam Farm</h1>
           <p className="mt-1 text-sm text-muted-foreground">نظام إدارة الماشية</p>
         </div>

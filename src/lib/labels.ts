@@ -36,7 +36,7 @@ export const ACTION_LABELS: Record<string, string> = {
   deleted: "حذف",
   moved: "نقل",
   reserved: "حجز",
-  cancelled: "ألغى حجز",
+  cancelled: "ألغى",
 };
 
 export const ENTITY_LABELS: Record<string, string> = {

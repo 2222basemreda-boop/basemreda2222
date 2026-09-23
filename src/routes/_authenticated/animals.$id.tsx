@@ -148,8 +148,8 @@ function AnimalDetail() {
                     <p className="font-bold">{h.customer ? `${h.customer.name} (${h.customer.code})` : "بدون عميل"}</p>
                     <p className="text-xs text-muted-foreground">{fmtDate(h.changed_at)}</p>
                   </div>
-                  {h.event === "cancelled"
-                    ? <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-bold text-destructive">حجز ملغي</span>
+                  {h.event === "cancelled" || h.event === "sale_cancelled"
+                    ? <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-bold text-destructive">{h.event === "sale_cancelled" ? "بيع ملغي" : "حجز ملغي"}</span>
                     : <StatusBadge status={h.status} />}
                 </div>
               ))}
