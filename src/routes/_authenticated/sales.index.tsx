@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarCheck, Plus, Receipt, Pencil, Trash2, FileText } from "lucide-react";
+import { CalendarCheck, Plus, Receipt, Pencil, Trash2, FileText, Ban } from "lucide-react";
 import { salesQuery, type Sale } from "@/lib/queries";
 import { fmtMoney, fmtWeight, fmtDate, fmtNum, invoiceTotal } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Loading, EmptyState, GlassCard, PaymentBadge, StatTile } from "@/components/farm/ui";
-import { SaleDialog, useDeleteRow } from "@/components/farm/forms";
+import { SaleDialog, useDeleteRow, useCancelSale } from "@/components/farm/forms";
 import { ConfirmDialog } from "@/components/farm/FormDialog";
 import { InvoiceDialog, invoiceFromSale, type InvoiceData } from "@/components/farm/Invoice";
 
@@ -31,12 +31,15 @@ function SalesPage() {
   const [edit, setEdit] = useState<Sale | null>(null);
   const [delId, setDelId] = useState<string | null>(null);
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
+  const [cancelId, setCancelId] = useState<string | null>(null);
   const del = useDeleteRow();
+  const cancelSale = useCancelSale();
 
   if (!auth.can("sales.read")) return <EmptyState title="ليس لديك صلاحية عرض المبيعات" />;
 
-  const total = (data ?? []).reduce((s, x) => s + invoiceTotal(x.total_price, x.worker_tip, x.transportation, x.slaughtering), 0);
-  const outstanding = (data ?? []).reduce((s, x) => {
+  const active = (data ?? []).filter((x) => !x.cancelled_at);
+  const total = active.reduce((s, x) => s + invoiceTotal(x.total_price, x.worker_tip, x.transportation, x.slaughtering), 0);
+  const outstanding = active.reduce((s, x) => {
     const finalTotal = invoiceTotal(x.total_price, x.worker_tip, x.transportation, x.slaughtering);
     return s + (x.payment_status === "paid" ? 0 : finalTotal - Number(x.paid_amount ?? 0));
   }, 0);
