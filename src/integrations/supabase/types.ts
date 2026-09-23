@@ -371,6 +371,9 @@ export type Database = {
       sales: {
         Row: {
           animal_id: string
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           created_at: string
           created_by: string | null
           customer_id: string | null
@@ -391,6 +394,9 @@ export type Database = {
         }
         Insert: {
           animal_id: string
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
@@ -411,6 +417,9 @@ export type Database = {
         }
         Update: {
           animal_id?: string
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
@@ -562,6 +571,10 @@ export type Database = {
     Functions: {
       cancel_reservation: {
         Args: { _animal_id: string; _reason?: string }
+        Returns: undefined
+      }
+      cancel_sale: {
+        Args: { _reason?: string; _sale_id: string }
         Returns: undefined
       }
       has_any_role: {
