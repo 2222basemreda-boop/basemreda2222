@@ -31,6 +31,8 @@ function friendly(msg: string) {
   if (/ANIMAL_NOT_AVAILABLE|ANIMAL_ALREADY_SOLD/.test(msg)) return "هذا العجل محجوز أو مباع بالفعل ولا يمكن بيعه مرة أخرى.";
   if (/ANIMAL_NOT_FOUND/.test(msg)) return "الحيوان غير موجود";
   if (/NOT_RESERVED/.test(msg)) return "هذا الحيوان غير محجوز حالياً";
+  if (/SALE_ALREADY_CANCELLED/.test(msg)) return "تم إلغاء هذا البيع مسبقاً";
+  if (/SALE_NOT_FOUND/.test(msg)) return "عملية البيع غير موجودة";
   if (/NOT_AUTHORIZED/.test(msg)) return "ليس لديك صلاحية لتنفيذ هذا الإجراء";
   if (/duplicate key/.test(msg) && /tag_number/.test(msg)) return "رقم الحيوان مستخدم من قبل";
   if (/duplicate key/.test(msg) && /code/.test(msg)) return "كود العميل مستخدم من قبل";
