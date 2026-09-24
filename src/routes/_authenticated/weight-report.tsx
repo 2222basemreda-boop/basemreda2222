@@ -38,8 +38,8 @@ function WeightReport() {
       .filter((a) => (!barn || a.barn_id === barn) && (!calf || a.id === calf))
       .map((a) => {
         const w = (weights ?? []).filter((x) => x.animal_id === a.id && (!from || x.recorded_at >= from) && (!to || x.recorded_at <= to));
-        if (!w.length) return null;
         const first = w[0], last = w[w.length - 1];
+        if (!first || !last) return null;
         const gain = Number(last.weight) - Number(first.weight);
         const span = days(first.recorded_at, last.recorded_at);
         return {
