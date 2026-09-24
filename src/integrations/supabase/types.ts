@@ -299,6 +299,7 @@ export type Database = {
       }
       feed_records: {
         Row: {
+          animal_count: number | null
           barn_id: string | null
           cost: number
           created_at: string
@@ -311,6 +312,7 @@ export type Database = {
           unit: string
         }
         Insert: {
+          animal_count?: number | null
           barn_id?: string | null
           cost?: number
           created_at?: string
@@ -323,6 +325,7 @@ export type Database = {
           unit?: string
         }
         Update: {
+          animal_count?: number | null
           barn_id?: string | null
           cost?: number
           created_at?: string
@@ -569,6 +572,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      animals_in_barn_on: {
+        Args: { _barn_id: string; _day: string }
+        Returns: number
+      }
       cancel_reservation: {
         Args: { _animal_id: string; _reason?: string }
         Returns: undefined
