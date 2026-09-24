@@ -18,6 +18,7 @@ import { Route as AuthenticatedFeedingRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedTreatmentsRouteImport } from './routes/_authenticated/treatments'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
+import { Route as AuthenticatedWeightReportRouteImport } from './routes/_authenticated/weight-report'
 import { Route as AuthenticatedWeightsRouteImport } from './routes/_authenticated/weights'
 import { Route as AuthenticatedAnimalsIndexRouteImport } from './routes/_authenticated/animals.index'
 import { Route as AuthenticatedAnimalsIdRouteImport } from './routes/_authenticated/animals.$id'
@@ -72,6 +73,12 @@ const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWeightReportRoute =
+  AuthenticatedWeightReportRouteImport.update({
+    id: '/weight-report',
+    path: '/weight-report',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedWeightsRoute = AuthenticatedWeightsRouteImport.update({
   id: '/weights',
   path: '/weights',
@@ -130,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof AuthenticatedSearchRoute
   '/treatments': typeof AuthenticatedTreatmentsRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/weight-report': typeof AuthenticatedWeightReportRoute
   '/weights': typeof AuthenticatedWeightsRoute
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
@@ -149,6 +157,7 @@ export interface FileRoutesByTo {
   '/search': typeof AuthenticatedSearchRoute
   '/treatments': typeof AuthenticatedTreatmentsRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/weight-report': typeof AuthenticatedWeightReportRoute
   '/weights': typeof AuthenticatedWeightsRoute
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
@@ -170,6 +179,7 @@ export interface FileRoutesById {
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/treatments': typeof AuthenticatedTreatmentsRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/_authenticated/weight-report': typeof AuthenticatedWeightReportRoute
   '/_authenticated/weights': typeof AuthenticatedWeightsRoute
   '/_authenticated/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/_authenticated/barns/$id': typeof AuthenticatedBarnsIdRoute
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/treatments'
     | '/users'
+    | '/weight-report'
     | '/weights'
     | '/animals/$id'
     | '/barns/$id'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/treatments'
     | '/users'
+    | '/weight-report'
     | '/weights'
     | '/animals/$id'
     | '/barns/$id'
@@ -230,6 +242,7 @@ export interface FileRouteTypes {
     | '/_authenticated/search'
     | '/_authenticated/treatments'
     | '/_authenticated/users'
+    | '/_authenticated/weight-report'
     | '/_authenticated/weights'
     | '/_authenticated/animals/$id'
     | '/_authenticated/barns/$id'
@@ -312,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/weight-report': {
+      id: '/_authenticated/weight-report'
+      path: '/weight-report'
+      fullPath: '/weight-report'
+      preLoaderRoute: typeof AuthenticatedWeightReportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/weights': {
       id: '/_authenticated/weights'
       path: '/weights'
@@ -385,6 +405,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedTreatmentsRoute: typeof AuthenticatedTreatmentsRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
+  AuthenticatedWeightReportRoute: typeof AuthenticatedWeightReportRoute
   AuthenticatedWeightsRoute: typeof AuthenticatedWeightsRoute
   AuthenticatedAnimalsIdRoute: typeof AuthenticatedAnimalsIdRoute
   AuthenticatedBarnsIdRoute: typeof AuthenticatedBarnsIdRoute
@@ -403,6 +424,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedTreatmentsRoute: AuthenticatedTreatmentsRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
+  AuthenticatedWeightReportRoute: AuthenticatedWeightReportRoute,
   AuthenticatedWeightsRoute: AuthenticatedWeightsRoute,
   AuthenticatedAnimalsIdRoute: AuthenticatedAnimalsIdRoute,
   AuthenticatedBarnsIdRoute: AuthenticatedBarnsIdRoute,
