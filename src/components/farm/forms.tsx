@@ -484,6 +484,26 @@ export function SaleDialog({ open, onOpenChange, animal, initial }: DialogProps 
 
 /* ---------- Feed ---------- */
 
+function FeedPerCalfPreview({ barnId, day, quantity, unit }: { barnId: string | null; day: string; quantity: string; unit: string }) {
+  const { data: count } = useQuery({
+    queryKey: ["animals_in_barn_on", barnId, day],
+    enabled: !!day,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("animals_in_barn_on", { _barn_id: barnId as string, _day: day });
+      if (error) throw new Error(error.message);
+      return data as number;
+    },
+  });
+  const q = Number(quantity) || 0;
+  const avg = count && q ? q / count : null;
+  return (
+    <div className="grid grid-cols-2 gap-2 rounded-2xl bg-brand/10 p-3 text-sm">
+      <div><p className="text-xs text-muted-foreground">عدد العجول في ذلك اليوم</p><p className="num text-lg font-bold">{count ?? "—"}</p></div>
+      <div><p className="text-xs text-muted-foreground">متوسط استهلاك العجل / يوم</p><p className="num text-lg font-bold text-brand">{avg != null ? `${avg.toFixed(2)} ${unit}` : "—"}</p></div>
+    </div>
+  );
+}
+
 const feedSchema = z.object({
   barn_id: z.string().nullable(),
   feed_date: z.string().min(1, "التاريخ مطلوب"),
@@ -547,6 +567,7 @@ export function FeedDialog({ open, onOpenChange, initial, defaultBarnId }: Dialo
           <Input value={f.cost} onChange={(e) => up("cost")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" />
         </Field>
       </div>
+      <FeedPerCalfPreview barnId={f.barn_id} day={f.feed_date} quantity={f.quantity} unit={f.unit} />
       <Field label="ملاحظات">
         <Textarea value={f.notes} onChange={(e) => up("notes")(e.target.value)} rows={2} />
       </Field>

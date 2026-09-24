@@ -50,6 +50,13 @@
       "when": 1790145403059,
       "tag": "0006_cancel_sale",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790220079642,
+      "tag": "0007_feed_animal_count",
+      "breakpoints": true
     }
   ]
 }
