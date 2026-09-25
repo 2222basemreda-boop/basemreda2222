@@ -28,6 +28,8 @@ import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
 import { Route as AuthenticatedSalesIndexRouteImport } from './routes/_authenticated/sales.index'
 import { Route as AuthenticatedSalesNewRouteImport } from './routes/_authenticated/sales.new'
+import { Route as AuthenticatedSuppliersIndexRouteImport } from './routes/_authenticated/suppliers.index'
+import { Route as AuthenticatedSuppliersIdRouteImport } from './routes/_authenticated/suppliers.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -127,6 +129,18 @@ const AuthenticatedSalesNewRoute = AuthenticatedSalesNewRouteImport.update({
   path: '/sales/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSuppliersIndexRoute =
+  AuthenticatedSuppliersIndexRouteImport.update({
+    id: '/suppliers/',
+    path: '/suppliers/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSuppliersIdRoute =
+  AuthenticatedSuppliersIdRouteImport.update({
+    id: '/suppliers/$id',
+    path: '/suppliers/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -143,10 +157,12 @@ export interface FileRoutesByFullPath {
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/sales/new': typeof AuthenticatedSalesNewRoute
+  '/suppliers/$id': typeof AuthenticatedSuppliersIdRoute
   '/animals/': typeof AuthenticatedAnimalsIndexRoute
   '/barns/': typeof AuthenticatedBarnsIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
   '/sales/': typeof AuthenticatedSalesIndexRoute
+  '/suppliers/': typeof AuthenticatedSuppliersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -163,10 +179,12 @@ export interface FileRoutesByTo {
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/sales/new': typeof AuthenticatedSalesNewRoute
+  '/suppliers/$id': typeof AuthenticatedSuppliersIdRoute
   '/animals': typeof AuthenticatedAnimalsIndexRoute
   '/barns': typeof AuthenticatedBarnsIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
   '/sales': typeof AuthenticatedSalesIndexRoute
+  '/suppliers': typeof AuthenticatedSuppliersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -185,10 +203,12 @@ export interface FileRoutesById {
   '/_authenticated/barns/$id': typeof AuthenticatedBarnsIdRoute
   '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/_authenticated/sales/new': typeof AuthenticatedSalesNewRoute
+  '/_authenticated/suppliers/$id': typeof AuthenticatedSuppliersIdRoute
   '/_authenticated/animals/': typeof AuthenticatedAnimalsIndexRoute
   '/_authenticated/barns/': typeof AuthenticatedBarnsIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
   '/_authenticated/sales/': typeof AuthenticatedSalesIndexRoute
+  '/_authenticated/suppliers/': typeof AuthenticatedSuppliersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,10 +227,12 @@ export interface FileRouteTypes {
     | '/barns/$id'
     | '/customers/$id'
     | '/sales/new'
+    | '/suppliers/$id'
     | '/animals/'
     | '/barns/'
     | '/customers/'
     | '/sales/'
+    | '/suppliers/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -227,10 +249,12 @@ export interface FileRouteTypes {
     | '/barns/$id'
     | '/customers/$id'
     | '/sales/new'
+    | '/suppliers/$id'
     | '/animals'
     | '/barns'
     | '/customers'
     | '/sales'
+    | '/suppliers'
   id:
     | '__root__'
     | '/'
@@ -248,10 +272,12 @@ export interface FileRouteTypes {
     | '/_authenticated/barns/$id'
     | '/_authenticated/customers/$id'
     | '/_authenticated/sales/new'
+    | '/_authenticated/suppliers/$id'
     | '/_authenticated/animals/'
     | '/_authenticated/barns/'
     | '/_authenticated/customers/'
     | '/_authenticated/sales/'
+    | '/_authenticated/suppliers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -395,6 +421,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSalesNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/suppliers/': {
+      id: '/_authenticated/suppliers/'
+      path: '/suppliers'
+      fullPath: '/suppliers/'
+      preLoaderRoute: typeof AuthenticatedSuppliersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/suppliers/$id': {
+      id: '/_authenticated/suppliers/$id'
+      path: '/suppliers/$id'
+      fullPath: '/suppliers/$id'
+      preLoaderRoute: typeof AuthenticatedSuppliersIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -411,10 +451,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBarnsIdRoute: typeof AuthenticatedBarnsIdRoute
   AuthenticatedCustomersIdRoute: typeof AuthenticatedCustomersIdRoute
   AuthenticatedSalesNewRoute: typeof AuthenticatedSalesNewRoute
+  AuthenticatedSuppliersIdRoute: typeof AuthenticatedSuppliersIdRoute
   AuthenticatedAnimalsIndexRoute: typeof AuthenticatedAnimalsIndexRoute
   AuthenticatedBarnsIndexRoute: typeof AuthenticatedBarnsIndexRoute
   AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
   AuthenticatedSalesIndexRoute: typeof AuthenticatedSalesIndexRoute
+  AuthenticatedSuppliersIndexRoute: typeof AuthenticatedSuppliersIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -430,10 +472,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBarnsIdRoute: AuthenticatedBarnsIdRoute,
   AuthenticatedCustomersIdRoute: AuthenticatedCustomersIdRoute,
   AuthenticatedSalesNewRoute: AuthenticatedSalesNewRoute,
+  AuthenticatedSuppliersIdRoute: AuthenticatedSuppliersIdRoute,
   AuthenticatedAnimalsIndexRoute: AuthenticatedAnimalsIndexRoute,
   AuthenticatedBarnsIndexRoute: AuthenticatedBarnsIndexRoute,
   AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
   AuthenticatedSalesIndexRoute: AuthenticatedSalesIndexRoute,
+  AuthenticatedSuppliersIndexRoute: AuthenticatedSuppliersIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
