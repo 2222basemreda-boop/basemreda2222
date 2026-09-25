@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Beef, Search, Receipt, Menu, Warehouse, Users, Scale, Wheat,
-  Stethoscope, ShieldCheck, History, LogOut, Wifi, WifiOff,
+  Stethoscope, ShieldCheck, Truck, History, LogOut, Wifi, WifiOff,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +28,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const secondary: NavItem[] = [
     { to: "/barns", label: "الحظائر", icon: Warehouse },
     { to: "/customers", label: "العملاء", icon: Users },
+    { to: "/suppliers", label: "الموردين", icon: Truck },
     { to: "/weights", label: "الأوزان", icon: Scale },
     { to: "/weight-report", label: "تقرير زيادة الوزن", icon: Scale },
     { to: "/feeding", label: "استهلاك العلف", icon: Wheat },

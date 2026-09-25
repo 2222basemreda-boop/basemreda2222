@@ -190,3 +190,43 @@ export const dashboardQuery = queryOptions({
     };
   },
 });
+
+export type Supplier = Tables<"suppliers">;
+export type SupplierPayment = Tables<"supplier_payments">;
+
+export const suppliersQuery = queryOptions({
+  queryKey: ["suppliers"],
+  queryFn: async () => throwIf(await supabase.from("suppliers").select("*").order("name")),
+});
+
+export const supplierPaymentsQuery = queryOptions({
+  queryKey: ["supplier_payments"],
+  queryFn: async () =>
+    throwIf(await supabase.from("supplier_payments").select("*").order("payment_date", { ascending: false }).order("created_at", { ascending: false })),
+});
+
+export type SupplierStats = {
+  count: number; value: number; paid: number; remaining: number;
+  monthCount: number; monthValue: number; monthPaid: number; monthRemaining: number;
+};
+
+/** Totals for one supplier: calf value = supplier costs, paid = paid-on-calf + recorded payments. */
+export function supplierStats(supplierId: string, animals: Animal[], payments: SupplierPayment[], now = new Date()): SupplierStats {
+  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const mine = animals.filter((a) => a.supplier_id === supplierId);
+  const pays = payments.filter((p) => p.supplier_id === supplierId);
+  const month = mine.filter((a) => a.entry_date.startsWith(ym));
+  const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
+  const value = sum(mine.map((a) => Number(a.supplier_cost ?? 0)));
+  const paid = sum(mine.map((a) => Number(a.supplier_paid ?? 0))) + sum(pays.map((p) => Number(p.amount)));
+  const monthValue = sum(month.map((a) => Number(a.supplier_cost ?? 0)));
+  const monthPaid = sum(month.map((a) => Number(a.supplier_paid ?? 0))) + sum(pays.filter((p) => p.payment_date.startsWith(ym)).map((p) => Number(p.amount)));
+  return { count: mine.length, value, paid, remaining: value - paid, monthCount: month.length, monthValue, monthPaid, monthRemaining: monthValue - monthPaid };
+}
+
+/** Remaining for a single calf: its cost minus paid-on-calf and payments explicitly linked to it. */
+export function calfRemaining(a: Animal, payments: SupplierPayment[]) {
+  const linked = payments.filter((p) => p.animal_id === a.id).reduce((s, p) => s + Number(p.amount), 0);
+  const paid = Number(a.supplier_paid ?? 0) + linked;
+  return { paid, remaining: Number(a.supplier_cost ?? 0) - paid };
+}

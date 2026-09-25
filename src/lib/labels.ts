@@ -47,4 +47,6 @@ export const ENTITY_LABELS: Record<string, string> = {
   feed_records: "سجل تغذية",
   treatments: "علاج",
   weight_records: "وزن",
+  suppliers: "مورد",
+  supplier_payments: "دفعة مورد",
 };
