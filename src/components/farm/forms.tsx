@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Field, NativeSelect } from "./ui";
 import { FormDialog } from "./FormDialog";
 import { SearchSelect } from "./SearchSelect";
-import { animalsQuery, barnsQuery, customersQuery, type Animal, type Barn, type Customer, type FeedRecord, type Sale, type Treatment, type WeightRecord } from "@/lib/queries";
+import { animalsQuery, barnsQuery, customersQuery, suppliersQuery, type Supplier, type Animal, type Barn, type Customer, type FeedRecord, type Sale, type Treatment, type WeightRecord } from "@/lib/queries";
 import { STATUS_LABELS, PAYMENT_LABELS, type AnimalStatus, type PaymentStatus } from "@/lib/labels";
 import { fmtMoney, invoiceTotal, today, toNum } from "@/lib/format";
 
@@ -85,14 +85,17 @@ const animalSchema = z.object({
   barn_id: z.string().nullable(),
   customer_id: z.string().nullable(),
   supplier_name: optText(120),
+  supplier_id: z.string().nullable(),
+  supplier_cost: optNum,
+  supplier_paid: optNum,
   status: z.enum(["available", "reserved"]),
   notes: optText(1000),
 });
 
-export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defaultCustomerId }: DialogProps & { initial?: Animal | null; defaultBarnId?: string | null; defaultCustomerId?: string | null }) {
+export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defaultCustomerId, defaultSupplierId }: DialogProps & { initial?: Animal | null; defaultBarnId?: string | null; defaultCustomerId?: string | null; defaultSupplierId?: string | null }) {
   const blank = () => ({
     tag_number: "", color: "", current_weight: "", entry_date: today(),
-    barn_id: defaultBarnId ?? null, customer_id: defaultCustomerId ?? null, supplier_name: "", status: defaultCustomerId ? "reserved" as AnimalStatus : "available" as AnimalStatus, notes: "",
+    barn_id: defaultBarnId ?? null, customer_id: defaultCustomerId ?? null, supplier_name: "", supplier_id: defaultSupplierId ?? null, supplier_cost: "", supplier_paid: "", status: defaultCustomerId ? "reserved" as AnimalStatus : "available" as AnimalStatus, notes: "",
   });
   const [f, setF] = useState(blank);
   useEffect(() => {
@@ -101,7 +104,7 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
       initial
         ? {
             tag_number: initial.tag_number, color: initial.color ?? "", current_weight: String(initial.current_weight ?? ""),
-            entry_date: initial.entry_date, barn_id: initial.barn_id, customer_id: initial.customer_id, supplier_name: initial.supplier_name ?? "",
+            entry_date: initial.entry_date, barn_id: initial.barn_id, customer_id: initial.customer_id, supplier_name: initial.supplier_name ?? "", supplier_id: initial.supplier_id, supplier_cost: initial.supplier_cost == null ? "" : String(initial.supplier_cost), supplier_paid: initial.supplier_paid ? String(initial.supplier_paid) : "",
             status: initial.status, notes: initial.notes ?? "",
           }
         : blank(),
@@ -110,6 +113,7 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
   }, [open, initial?.id]);
 
   const barns = useBarns();
+  const suppliers = useQuery(suppliersQuery).data ?? [];
   const isSold = initial?.status === "sold";
 
   const save = useSave(async () => {
@@ -118,9 +122,13 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
     if (err || !parsed.success) throw new Error(err ?? "");
     const d = parsed.data;
     if (d.status === "reserved" && !d.customer_id) throw new Error("استخدم خيار حجز من المبيعات لحجز الحيوان لعميل");
+    if ((d.supplier_paid ?? 0) > 0 && d.supplier_cost == null) throw new Error("أدخل تكلفة المورد أولاً");
+    if (d.supplier_cost != null && (d.supplier_paid ?? 0) > d.supplier_cost) throw new Error("المدفوع أكبر من تكلفة المورد");
+    const sup = suppliers.find((x) => x.id === d.supplier_id);
     const payload = {
       tag_number: d.tag_number, color: d.color, entry_date: d.entry_date, barn_id: d.barn_id,
-      customer_id: d.customer_id, supplier_name: d.supplier_name, notes: d.notes,
+      customer_id: d.customer_id, supplier_name: sup ? sup.name : d.supplier_name, notes: d.notes,
+      supplier_id: d.supplier_id, supplier_cost: d.supplier_cost, supplier_paid: d.supplier_paid ?? 0,
       ...(isSold ? {} : { status: d.status }),
     };
     if (initial) {
@@ -159,9 +167,24 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
           {barns.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </NativeSelect>
       </Field>
-      <Field label="اسم المورد">
-        <Input value={f.supplier_name} onChange={(e) => set("supplier_name")(e.target.value)} placeholder="اسم المورد" />
+      <Field label="المورد" {...(!f.supplier_id && f.supplier_name ? { hint: `اسم المورد المسجل: ${f.supplier_name}` } : {})}>
+        <NativeSelect value={f.supplier_id ?? ""} onChange={(e) => set("supplier_id")(e.target.value || null)}>
+          <option value="">بدون مورد</option>
+          {suppliers.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+        </NativeSelect>
       </Field>
+      <div className="grid grid-cols-3 gap-3">
+        <Field label="تكلفة المورد (ج.م)">
+          <Input value={f.supplier_cost} onChange={(e) => set("supplier_cost")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" placeholder="0" />
+        </Field>
+        <Field label="المدفوع للعجل">
+          <Input value={f.supplier_paid} onChange={(e) => set("supplier_paid")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" placeholder="0" />
+        </Field>
+        <Field label="المتبقي">
+          <div className="num flex h-12 items-center rounded-2xl bg-muted px-3 font-bold">{fmtMoney((toNum(f.supplier_cost) ?? 0) - (toNum(f.supplier_paid) ?? 0))}</div>
+        </Field>
+      </div>
+      <p className="-mt-2 text-xs text-muted-foreground">تكلفة المورد منفصلة تماماً عن سعر البيع.</p>
       {!isSold && (
         <Field label="الحالة">
           <div className="grid grid-cols-2 gap-2">
@@ -715,4 +738,76 @@ export function useCancelSale() {
     },
     onError: (e: Error) => toast.error(friendly(e.message)),
   });
+}
+
+/* ---------- Suppliers ---------- */
+
+const supplierSchema = z.object({
+  name: z.string().trim().min(2, "اسم المورد مطلوب").max(120, "الاسم طويل جداً"),
+  phone: optText(30),
+  address: optText(300),
+  notes: optText(1000),
+});
+
+export function SupplierDialog({ open, onOpenChange, initial }: DialogProps & { initial?: Supplier | null }) {
+  const [f, setF] = useState({ name: "", phone: "", address: "", notes: "" });
+  useEffect(() => {
+    if (!open) return;
+    setF(initial ? { name: initial.name, phone: initial.phone ?? "", address: initial.address ?? "", notes: initial.notes ?? "" } : { name: "", phone: "", address: "", notes: "" });
+  }, [open, initial]);
+  const save = useSave(async () => {
+    const parsed = supplierSchema.safeParse(f);
+    const err = firstIssue(parsed);
+    if (err || !parsed.success) throw new Error(err ?? "");
+    if (initial) {
+      const { error } = await supabase.from("suppliers").update(parsed.data).eq("id", initial.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { data: u } = await supabase.auth.getUser();
+      const { error } = await supabase.from("suppliers").insert({ ...parsed.data, created_by: u.user?.id ?? null });
+      if (error) throw new Error(error.message);
+    }
+  }, () => onOpenChange(false), initial ? "تم تحديث بيانات المورد" : "تمت إضافة المورد");
+  return (
+    <FormDialog open={open} onOpenChange={onOpenChange} title={initial ? "تعديل المورد" : "إضافة مورد جديد"} onSubmit={() => save.mutate(undefined)} submitting={save.isPending}>
+      <Field label="اسم المورد" required><Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} autoFocus /></Field>
+      <Field label="رقم الهاتف"><Input value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} type="tel" dir="ltr" className="num" /></Field>
+      <Field label="العنوان"><Input value={f.address} onChange={(e) => setF({ ...f, address: e.target.value })} /></Field>
+      <Field label="ملاحظات"><Textarea value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} rows={2} /></Field>
+    </FormDialog>
+  );
+}
+
+const supplierPaymentSchema = z.object({
+  amount: numField("المبلغ", 0.01),
+  payment_date: z.string().min(1, "التاريخ مطلوب"),
+  animal_id: z.string().nullable(),
+  notes: optText(500),
+});
+
+export function SupplierPaymentDialog({ open, onOpenChange, supplierId, calves }: DialogProps & { supplierId: string; calves: Animal[] }) {
+  const [f, setF] = useState({ amount: "", payment_date: today(), animal_id: null as string | null, notes: "" });
+  useEffect(() => { if (open) setF({ amount: "", payment_date: today(), animal_id: null, notes: "" }); }, [open]);
+  const save = useSave(async () => {
+    const parsed = supplierPaymentSchema.safeParse(f);
+    const err = firstIssue(parsed);
+    if (err || !parsed.success) throw new Error(err ?? "");
+    const { error } = await supabase.from("supplier_payments").insert({ ...parsed.data, supplier_id: supplierId });
+    if (error) throw new Error(error.message);
+  }, () => onOpenChange(false), "تم تسجيل الدفعة");
+  return (
+    <FormDialog open={open} onOpenChange={onOpenChange} title="تسجيل دفعة للمورد" onSubmit={() => save.mutate(undefined)} submitting={save.isPending}>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="المبلغ (ج.م)" required><Input value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} type="number" inputMode="decimal" min={0} className="num text-xl" autoFocus /></Field>
+        <Field label="تاريخ الدفع" required><Input value={f.payment_date} onChange={(e) => setF({ ...f, payment_date: e.target.value })} type="date" className="num" /></Field>
+      </div>
+      <Field label="ربط بعجل محدد" hint="اتركه فارغاً لتسجيلها دفعة عامة للمورد">
+        <NativeSelect value={f.animal_id ?? ""} onChange={(e) => setF({ ...f, animal_id: e.target.value || null })}>
+          <option value="">دفعة عامة (بدون عجل)</option>
+          {calves.map((a) => <option key={a.id} value={a.id}>{a.tag_number}</option>)}
+        </NativeSelect>
+      </Field>
+      <Field label="ملاحظات"><Textarea value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} rows={2} /></Field>
+    </FormDialog>
+  );
 }

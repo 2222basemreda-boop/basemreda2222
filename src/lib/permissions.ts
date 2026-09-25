@@ -17,7 +17,10 @@ export type Action =
   | "treatments.write"
   | "treatments.delete"
   | "users.manage"
-  | "logs.read";
+  | "logs.read"
+  | "suppliers.write"
+  | "suppliers.delete"
+  | "supplierPayments.write";
 
 const MATRIX: Record<Action, AppRole[]> = {
   "animals.write": ["admin", "manager", "worker"],
@@ -36,6 +39,9 @@ const MATRIX: Record<Action, AppRole[]> = {
   "treatments.write": ["admin", "manager", "worker"],
   "treatments.delete": ["admin"],
   "users.manage": ["admin"],
+  "suppliers.write": ["admin", "manager", "accountant", "worker"],
+  "suppliers.delete": ["admin"],
+  "supplierPayments.write": ["admin", "manager", "accountant"],
   "logs.read": ["admin", "manager", "accountant", "worker"],
 };
 
