@@ -134,7 +134,10 @@ export type Database = {
           id: string
           notes: string | null
           status: Database["public"]["Enums"]["animal_status"]
+          supplier_cost: number | null
+          supplier_id: string | null
           supplier_name: string | null
+          supplier_paid: number
           tag_number: string
           updated_at: string
         }
@@ -149,7 +152,10 @@ export type Database = {
           id?: string
           notes?: string | null
           status?: Database["public"]["Enums"]["animal_status"]
+          supplier_cost?: number | null
+          supplier_id?: string | null
           supplier_name?: string | null
+          supplier_paid?: number
           tag_number: string
           updated_at?: string
         }
@@ -164,7 +170,10 @@ export type Database = {
           id?: string
           notes?: string | null
           status?: Database["public"]["Enums"]["animal_status"]
+          supplier_cost?: number | null
+          supplier_id?: string | null
           supplier_name?: string | null
+          supplier_paid?: number
           tag_number?: string
           updated_at?: string
         }
@@ -181,6 +190,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "animals_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -457,6 +473,90 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      supplier_payments: {
+        Row: {
+          amount: number
+          animal_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          payment_date: string
+          recorded_by: string | null
+          recorded_by_name: string | null
+          supplier_id: string
+        }
+        Insert: {
+          amount: number
+          animal_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          recorded_by?: string | null
+          recorded_by_name?: string | null
+          supplier_id: string
+        }
+        Update: {
+          amount?: number
+          animal_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          recorded_by?: string | null
+          recorded_by_name?: string | null
+          supplier_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_payments_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "animals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_payments_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       treatments: {
         Row: {

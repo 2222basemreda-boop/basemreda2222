@@ -57,6 +57,13 @@
       "when": 1790220079642,
       "tag": "0007_feed_animal_count",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790327621034,
+      "tag": "0008_suppliers_and_payments",
+      "breakpoints": true
     }
   ]
 }
