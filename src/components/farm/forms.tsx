@@ -167,7 +167,7 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
           {barns.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </NativeSelect>
       </Field>
-      <Field label="المورد" hint={!f.supplier_id && f.supplier_name ? `اسم المورد المسجل: ${f.supplier_name}` : undefined}>
+      <Field label="المورد" {...(!f.supplier_id && f.supplier_name ? { hint: `اسم المورد المسجل: ${f.supplier_name}` } : {})}>
         <NativeSelect value={f.supplier_id ?? ""} onChange={(e) => set("supplier_id")(e.target.value || null)}>
           <option value="">بدون مورد</option>
           {suppliers.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
