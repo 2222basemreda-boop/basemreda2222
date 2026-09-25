@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireStaffAuth } from "./staff-auth";
 
 const roleSchema = z.enum(["admin", "manager", "worker", "accountant"]);
 
@@ -20,7 +20,7 @@ async function assertAdmin(ctx: { supabase: any; userId: string }) {
 export const bootstrapAdmin = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => newUserSchema.omit({ role: true }).parse(input))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = (await import("./supabase-env.server")).adminClient();
     const { count } = await supabaseAdmin.from("user_roles").select("*", { count: "exact", head: true });
     if ((count ?? 0) > 0) throw new Error("تم إعداد النظام مسبقاً. سجّل الدخول بحسابك.");
 
@@ -38,11 +38,11 @@ export const bootstrapAdmin = createServerFn({ method: "POST" })
   });
 
 export const createStaffUser = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireStaffAuth])
   .inputValidator((input: unknown) => newUserSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = (await import("./supabase-env.server")).adminClient();
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
       password: data.password,
@@ -50,20 +50,24 @@ export const createStaffUser = createServerFn({ method: "POST" })
       user_metadata: { full_name: data.fullName },
     });
     if (error || !created.user) throw new Error(error?.message ?? "تعذر إنشاء الحساب");
-    await supabaseAdmin.from("profiles").insert({ id: created.user.id, full_name: data.fullName, email: data.email });
-    await supabaseAdmin.from("user_roles").insert({ user_id: created.user.id, role: data.role });
+    const p = await supabaseAdmin.from("profiles").upsert({ id: created.user.id, full_name: data.fullName, email: data.email });
+    const r = await supabaseAdmin.from("user_roles").insert({ user_id: created.user.id, role: data.role });
+    if (p.error || r.error) {
+      await supabaseAdmin.auth.admin.deleteUser(created.user.id);
+      throw new Error("تعذر حفظ بيانات المستخدم: " + (p.error ?? r.error)!.message);
+    }
     return { id: created.user.id };
   });
 
 export const updateStaffRole = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireStaffAuth])
   .inputValidator((input: unknown) => z.object({ userId: z.string().uuid(), role: roleSchema }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     if (data.userId === context.userId && data.role !== "admin") {
       throw new Error("لا يمكنك إزالة صلاحية المدير عن حسابك");
     }
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = (await import("./supabase-env.server")).adminClient();
     await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
     const { error } = await supabaseAdmin.from("user_roles").insert({ user_id: data.userId, role: data.role });
     if (error) throw new Error(error.message);
@@ -71,12 +75,12 @@ export const updateStaffRole = createServerFn({ method: "POST" })
   });
 
 export const setStaffActive = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireStaffAuth])
   .inputValidator((input: unknown) => z.object({ userId: z.string().uuid(), active: z.boolean() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     if (data.userId === context.userId) throw new Error("لا يمكنك تعطيل حسابك");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = (await import("./supabase-env.server")).adminClient();
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
       ban_duration: data.active ? "none" : "876000h",
     });
@@ -86,25 +90,25 @@ export const setStaffActive = createServerFn({ method: "POST" })
   });
 
 export const resetStaffPassword = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireStaffAuth])
   .inputValidator((input: unknown) =>
     z.object({ userId: z.string().uuid(), password: z.string().min(6).max(72) }).parse(input),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = (await import("./supabase-env.server")).adminClient();
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, { password: data.password });
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
 
 export const deleteStaffUser = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireStaffAuth])
   .inputValidator((input: unknown) => z.object({ userId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     if (data.userId === context.userId) throw new Error("لا يمكنك حذف حسابك");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = (await import("./supabase-env.server")).adminClient();
     await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
     await supabaseAdmin.from("profiles").delete().eq("id", data.userId);
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
