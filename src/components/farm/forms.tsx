@@ -77,6 +77,18 @@ type DialogProps = { open: boolean; onOpenChange: (o: boolean) => void };
 
 /* ---------- Animal ---------- */
 
+/** Calf cost = purchase price × receive weight; total adds expenses; shrink = receive − farm weight. */
+export function calfCosts(
+  f: { purchase_price_per_kg: string; receive_weight: string; farm_weight: string; expenses: string },
+  legacyCost: number | null = null,
+) {
+  const price = toNum(f.purchase_price_per_kg), rw = toNum(f.receive_weight), fw = toNum(f.farm_weight), exp = toNum(f.expenses) ?? 0;
+  const base = price != null && rw != null ? price * rw : null;
+  const total = base != null ? base + exp : legacyCost != null && price == null ? Number(legacyCost) : exp > 0 ? exp : null;
+  const shrink = rw != null && fw != null ? rw - fw : null;
+  return { base, total, shrink };
+}
+
 const animalSchema = z.object({
   tag_number: z.string().trim().min(1, "رقم الحيوان مطلوب").max(40, "رقم الحيوان طويل جداً"),
   color: optText(60),
@@ -86,8 +98,11 @@ const animalSchema = z.object({
   customer_id: z.string().nullable(),
   supplier_name: optText(120),
   supplier_id: z.string().nullable(),
-  supplier_cost: optNum,
   supplier_paid: optNum,
+  purchase_price_per_kg: optNum,
+  receive_weight: optNum,
+  farm_weight: optNum,
+  expenses: optNum,
   status: z.enum(["available", "reserved"]),
   notes: optText(1000),
 });
@@ -95,7 +110,7 @@ const animalSchema = z.object({
 export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defaultCustomerId, defaultSupplierId }: DialogProps & { initial?: Animal | null; defaultBarnId?: string | null; defaultCustomerId?: string | null; defaultSupplierId?: string | null }) {
   const blank = () => ({
     tag_number: "", color: "", current_weight: "", entry_date: today(),
-    barn_id: defaultBarnId ?? null, customer_id: defaultCustomerId ?? null, supplier_name: "", supplier_id: defaultSupplierId ?? null, supplier_cost: "", supplier_paid: "", status: defaultCustomerId ? "reserved" as AnimalStatus : "available" as AnimalStatus, notes: "",
+    barn_id: defaultBarnId ?? null, customer_id: defaultCustomerId ?? null, supplier_name: "", supplier_id: defaultSupplierId ?? null, supplier_paid: "", purchase_price_per_kg: "", receive_weight: "", farm_weight: "", expenses: "", status: defaultCustomerId ? "reserved" as AnimalStatus : "available" as AnimalStatus, notes: "",
   });
   const [f, setF] = useState(blank);
   useEffect(() => {
@@ -104,7 +119,8 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
       initial
         ? {
             tag_number: initial.tag_number, color: initial.color ?? "", current_weight: String(initial.current_weight ?? ""),
-            entry_date: initial.entry_date, barn_id: initial.barn_id, customer_id: initial.customer_id, supplier_name: initial.supplier_name ?? "", supplier_id: initial.supplier_id, supplier_cost: initial.supplier_cost == null ? "" : String(initial.supplier_cost), supplier_paid: initial.supplier_paid ? String(initial.supplier_paid) : "",
+            entry_date: initial.entry_date, barn_id: initial.barn_id, customer_id: initial.customer_id, supplier_name: initial.supplier_name ?? "", supplier_id: initial.supplier_id, supplier_paid: initial.supplier_paid ? String(initial.supplier_paid) : "",
+            purchase_price_per_kg: initial.purchase_price_per_kg == null ? "" : String(initial.purchase_price_per_kg), receive_weight: initial.receive_weight == null ? "" : String(initial.receive_weight), farm_weight: initial.farm_weight == null ? "" : String(initial.farm_weight), expenses: initial.expenses ? String(initial.expenses) : "",
             status: initial.status, notes: initial.notes ?? "",
           }
         : blank(),
@@ -115,6 +131,7 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
   const barns = useBarns();
   const suppliers = useQuery(suppliersQuery).data ?? [];
   const isSold = initial?.status === "sold";
+  const calc = calfCosts(f, initial?.supplier_cost ?? null);
 
   const save = useSave(async () => {
     const parsed = animalSchema.safeParse({ ...f, status: isSold ? "available" : f.status });
@@ -122,13 +139,17 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
     if (err || !parsed.success) throw new Error(err ?? "");
     const d = parsed.data;
     if (d.status === "reserved" && !d.customer_id) throw new Error("استخدم خيار حجز من المبيعات لحجز الحيوان لعميل");
-    if ((d.supplier_paid ?? 0) > 0 && d.supplier_cost == null) throw new Error("أدخل تكلفة المورد أولاً");
-    if (d.supplier_cost != null && (d.supplier_paid ?? 0) > d.supplier_cost) throw new Error("المدفوع أكبر من تكلفة المورد");
+    if (d.purchase_price_per_kg != null && d.receive_weight == null) throw new Error("أدخل وزن الاستلام لحساب تكلفة العجل");
+    if (d.farm_weight != null && d.receive_weight != null && d.farm_weight > d.receive_weight) throw new Error("وزن المزرعة أكبر من وزن الاستلام");
+    const total = calfCosts(f, initial?.supplier_cost ?? null).total;
+    if ((d.supplier_paid ?? 0) > 0 && total == null) throw new Error("أدخل سعر الشراء ووزن الاستلام أولاً");
+    if (total != null && (d.supplier_paid ?? 0) > total) throw new Error("المدفوع أكبر من إجمالي تكلفة العجل");
     const sup = suppliers.find((x) => x.id === d.supplier_id);
     const payload = {
       tag_number: d.tag_number, color: d.color, entry_date: d.entry_date, barn_id: d.barn_id,
       customer_id: d.customer_id, supplier_name: sup ? sup.name : d.supplier_name, notes: d.notes,
-      supplier_id: d.supplier_id, supplier_cost: d.supplier_cost, supplier_paid: d.supplier_paid ?? 0,
+      supplier_id: d.supplier_id, supplier_cost: total, supplier_paid: d.supplier_paid ?? 0,
+      purchase_price_per_kg: d.purchase_price_per_kg, receive_weight: d.receive_weight, farm_weight: d.farm_weight, expenses: d.expenses ?? 0,
       ...(isSold ? {} : { status: d.status }),
     };
     if (initial) {
@@ -136,7 +157,7 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
       if (error) throw new Error(error.message);
     } else {
       const { data: u } = await supabase.auth.getUser();
-      const { error } = await supabase.from("animals").insert({ ...payload, current_weight: d.current_weight, created_by: u.user?.id ?? null });
+      const { error } = await supabase.from("animals").insert({ ...payload, current_weight: d.current_weight ?? d.farm_weight ?? d.receive_weight, created_by: u.user?.id ?? null });
       if (error) throw new Error(error.message);
     }
   }, () => onOpenChange(false), initial ? "تم تحديث بيانات الحيوان" : "تمت إضافة الحيوان");
@@ -174,17 +195,39 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
         </NativeSelect>
       </Field>
       <div className="grid grid-cols-3 gap-3">
-        <Field label="تكلفة المورد (ج.م)">
-          <Input value={f.supplier_cost} onChange={(e) => set("supplier_cost")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" placeholder="0" />
+        <Field label="وزن الاستلام (كجم)">
+          <Input value={f.receive_weight} onChange={(e) => set("receive_weight")(e.target.value)} type="number" inputMode="decimal" min={0} step="0.5" className="num" placeholder="0" />
         </Field>
+        <Field label="وزن المزرعة (كجم)">
+          <Input value={f.farm_weight} onChange={(e) => set("farm_weight")(e.target.value)} type="number" inputMode="decimal" min={0} step="0.5" className="num" placeholder="0" />
+        </Field>
+        <Field label="إجمالي الخسية">
+          <div className="num flex h-12 items-center rounded-2xl bg-muted px-3 font-bold">{fmtWeight(calc.shrink)}</div>
+        </Field>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="سعر الشراء (ج.م/كجم)">
+          <Input value={f.purchase_price_per_kg} onChange={(e) => set("purchase_price_per_kg")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" placeholder="0" />
+        </Field>
+        <Field label="تكلفة العجل" hint="سعر الشراء × وزن الاستلام">
+          <div className="num flex h-12 items-center rounded-2xl bg-muted px-3 font-bold">{fmtMoney(calc.base)}</div>
+        </Field>
+        <Field label="مصروفات (ج.م)">
+          <Input value={f.expenses} onChange={(e) => set("expenses")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" placeholder="0" />
+        </Field>
+        <Field label="إجمالي تكلفة العجل">
+          <div className="num flex h-12 items-center rounded-2xl bg-brand/10 px-3 font-bold text-brand">{fmtMoney(calc.total)}</div>
+        </Field>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
         <Field label="المدفوع للعجل">
           <Input value={f.supplier_paid} onChange={(e) => set("supplier_paid")(e.target.value)} type="number" inputMode="decimal" min={0} className="num" placeholder="0" />
         </Field>
         <Field label="المتبقي">
-          <div className="num flex h-12 items-center rounded-2xl bg-muted px-3 font-bold">{fmtMoney((toNum(f.supplier_cost) ?? 0) - (toNum(f.supplier_paid) ?? 0))}</div>
+          <div className="num flex h-12 items-center rounded-2xl bg-muted px-3 font-bold">{fmtMoney((calc.total ?? 0) - (toNum(f.supplier_paid) ?? 0))}</div>
         </Field>
       </div>
-      <p className="-mt-2 text-xs text-muted-foreground">تكلفة المورد منفصلة تماماً عن سعر البيع.</p>
+      <p className="-mt-2 text-xs text-muted-foreground">تكلفة الشراء منفصلة تماماً عن سعر البيع.</p>
       {!isSold && (
         <Field label="الحالة">
           <div className="grid grid-cols-2 gap-2">
