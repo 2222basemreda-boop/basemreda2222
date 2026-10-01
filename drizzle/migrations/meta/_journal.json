@@ -64,6 +64,13 @@
       "when": 1790327621034,
       "tag": "0008_suppliers_and_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790829116079,
+      "tag": "0009_calf_purchase_and_weights",
+      "breakpoints": true
     }
   ]
 }

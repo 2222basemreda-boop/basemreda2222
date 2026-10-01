@@ -71,6 +71,13 @@ function AnimalDetail() {
         <Info label="اسم المورد" value={animal.supplier_name || "بدون مورد"} />
         <Info label="الحظيرة" value={animal.barn ? <Link to="/barns/$id" params={{ id: animal.barn.id }} className="text-brand">{animal.barn.name}</Link> : "بدون حظيرة"} />
         <Info label="الحالة" value={STATUS_LABELS[animal.status]} />
+        {animal.receive_weight != null && <Info label="وزن الاستلام" value={fmtWeight(animal.receive_weight)} />}
+        {animal.farm_weight != null && <Info label="وزن المزرعة" value={fmtWeight(animal.farm_weight)} />}
+        {animal.receive_weight != null && animal.farm_weight != null && <Info label="إجمالي الخسية" value={fmtWeight(Number(animal.receive_weight) - Number(animal.farm_weight))} />}
+        {auth.can("suppliers.write") && animal.purchase_price_per_kg != null && <Info label="سعر الشراء" value={`${fmtMoney(animal.purchase_price_per_kg)}/كجم`} />}
+        {auth.can("suppliers.write") && animal.purchase_price_per_kg != null && animal.receive_weight != null && <Info label="تكلفة العجل" value={fmtMoney(Number(animal.purchase_price_per_kg) * Number(animal.receive_weight))} />}
+        {auth.can("suppliers.write") && Number(animal.expenses) > 0 && <Info label="مصروفات" value={fmtMoney(animal.expenses)} />}
+        {auth.can("suppliers.write") && animal.supplier_cost != null && <Info label="إجمالي تكلفة العجل" value={fmtMoney(animal.supplier_cost)} />}
         {animal.customer && (
           <Info label="العميل" value={<Link to="/customers/$id" params={{ id: animal.customer.id }} className="text-brand">{animal.customer.name}</Link>} sub={animal.customer.code} />
         )}

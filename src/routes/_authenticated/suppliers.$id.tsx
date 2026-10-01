@@ -82,7 +82,7 @@ function SupplierPage() {
           <div className="glass overflow-x-auto rounded-2xl">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="text-xs text-muted-foreground"><tr className="border-b border-border">
-                {["رقم العجل", "تاريخ الاستلام", "الوزن", "اللون", "الحظيرة", "تكلفة المورد", "المدفوع", "المتبقي", "الحالة"].map((h) => <th key={h} className="p-3 text-start font-medium">{h}</th>)}
+                {["رقم العجل", "تاريخ الاستلام", "وزن الاستلام", "وزن المزرعة", "الخسية", "الوزن الحالي", "اللون", "الحظيرة", "سعر الشراء", "مصروفات", "إجمالي التكلفة", "المدفوع", "المتبقي", "الحالة"].map((h) => <th key={h} className="p-3 text-start font-medium">{h}</th>)}
               </tr></thead>
               <tbody>
                 {calves.map((a) => {
@@ -91,9 +91,14 @@ function SupplierPage() {
                     <tr key={a.id} className="border-b border-border/50 last:border-0">
                       <td className="p-3 font-bold"><Link to="/animals/$id" params={{ id: a.id }} className="num text-brand underline-offset-2 hover:underline">{a.tag_number}</Link></td>
                       <td className="num p-3">{fmtDate(a.entry_date)}</td>
+                      <td className="num p-3">{fmtWeight(a.receive_weight)}</td>
+                      <td className="num p-3">{fmtWeight(a.farm_weight)}</td>
+                      <td className="num p-3">{a.receive_weight != null && a.farm_weight != null ? fmtWeight(Number(a.receive_weight) - Number(a.farm_weight)) : "—"}</td>
                       <td className="num p-3">{fmtWeight(a.current_weight)}</td>
                       <td className="p-3">{a.color ?? "—"}</td>
                       <td className="p-3">{a.barn?.name ?? "—"}</td>
+                      <td className="num p-3">{fmtMoney(a.purchase_price_per_kg)}</td>
+                      <td className="num p-3">{fmtMoney(a.expenses)}</td>
                       <td className="num p-3">{a.supplier_cost == null ? "—" : fmtMoney(a.supplier_cost)}</td>
                       <td className="num p-3">{fmtMoney(r.paid)}</td>
                       <td className="num p-3 font-bold">{fmtMoney(r.remaining)}</td>
