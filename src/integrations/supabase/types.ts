@@ -131,8 +131,12 @@ export type Database = {
           current_weight: number | null
           customer_id: string | null
           entry_date: string
+          expenses: number
+          farm_weight: number | null
           id: string
           notes: string | null
+          purchase_price_per_kg: number | null
+          receive_weight: number | null
           status: Database["public"]["Enums"]["animal_status"]
           supplier_cost: number | null
           supplier_id: string | null
@@ -149,8 +153,12 @@ export type Database = {
           current_weight?: number | null
           customer_id?: string | null
           entry_date?: string
+          expenses?: number
+          farm_weight?: number | null
           id?: string
           notes?: string | null
+          purchase_price_per_kg?: number | null
+          receive_weight?: number | null
           status?: Database["public"]["Enums"]["animal_status"]
           supplier_cost?: number | null
           supplier_id?: string | null
@@ -167,8 +175,12 @@ export type Database = {
           current_weight?: number | null
           customer_id?: string | null
           entry_date?: string
+          expenses?: number
+          farm_weight?: number | null
           id?: string
           notes?: string | null
+          purchase_price_per_kg?: number | null
+          receive_weight?: number | null
           status?: Database["public"]["Enums"]["animal_status"]
           supplier_cost?: number | null
           supplier_id?: string | null
