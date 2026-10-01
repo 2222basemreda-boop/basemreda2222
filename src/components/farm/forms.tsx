@@ -10,7 +10,7 @@ import { FormDialog } from "./FormDialog";
 import { SearchSelect } from "./SearchSelect";
 import { animalsQuery, barnsQuery, customersQuery, suppliersQuery, type Supplier, type Animal, type Barn, type Customer, type FeedRecord, type Sale, type Treatment, type WeightRecord } from "@/lib/queries";
 import { STATUS_LABELS, PAYMENT_LABELS, type AnimalStatus, type PaymentStatus } from "@/lib/labels";
-import { fmtMoney, invoiceTotal, today, toNum } from "@/lib/format";
+import { fmtMoney, fmtWeight, invoiceTotal, today, toNum } from "@/lib/format";
 
 /* ---------- helpers ---------- */
 
