@@ -110,7 +110,7 @@ const animalSchema = z.object({
 export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defaultCustomerId, defaultSupplierId }: DialogProps & { initial?: Animal | null; defaultBarnId?: string | null; defaultCustomerId?: string | null; defaultSupplierId?: string | null }) {
   const blank = () => ({
     tag_number: "", color: "", current_weight: "", entry_date: today(),
-    barn_id: defaultBarnId ?? null, customer_id: defaultCustomerId ?? null, supplier_name: "", supplier_id: defaultSupplierId ?? null, supplier_paid: "", purchase_price_per_kg: "", receive_weight: "", farm_weight: "", expenses: "", status: defaultCustomerId ? "reserved" as AnimalStatus : "available" as AnimalStatus, notes: "",
+    barn_id: defaultBarnId ?? null, customer_id: defaultCustomerId ?? null, supplier_name: "", supplier_id: null as string | null, supplier_paid: "", purchase_price_per_kg: "", receive_weight: "", farm_weight: "", expenses: "", status: "available" as AnimalStatus, notes: "",
   });
   const [f, setF] = useState(blank);
   useEffect(() => {
@@ -131,6 +131,11 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
   const barns = useBarns();
   const suppliers = useQuery(suppliersQuery).data ?? [];
   const isSold = initial?.status === "sold";
+  useEffect(() => {
+    if (!open || initial || !defaultSupplierId) return;
+    const n = suppliers.find((x) => x.id === defaultSupplierId)?.name;
+    if (n) setF((s) => (s.supplier_name ? s : { ...s, supplier_name: n }));
+  }, [open, initial, defaultSupplierId, suppliers]);
   const calc = calfCosts(f, initial?.supplier_cost ?? null);
 
   const save = useSave(async () => {
@@ -138,26 +143,39 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
     const err = firstIssue(parsed);
     if (err || !parsed.success) throw new Error(err ?? "");
     const d = parsed.data;
-    if (d.status === "reserved" && !d.customer_id) throw new Error("استخدم خيار حجز من المبيعات لحجز الحيوان لعميل");
     if (d.purchase_price_per_kg != null && d.receive_weight == null) throw new Error("أدخل وزن الاستلام لحساب تكلفة العجل");
     if (d.farm_weight != null && d.receive_weight != null && d.farm_weight > d.receive_weight) throw new Error("وزن المزرعة أكبر من وزن الاستلام");
     const total = calfCosts(f, initial?.supplier_cost ?? null).total;
     if ((d.supplier_paid ?? 0) > 0 && total == null) throw new Error("أدخل سعر الشراء ووزن الاستلام أولاً");
     if (total != null && (d.supplier_paid ?? 0) > total) throw new Error("المدفوع أكبر من إجمالي تكلفة العجل");
-    const sup = suppliers.find((x) => x.id === d.supplier_id);
+    // Find the supplier by name (ignoring spaces/case) or create it automatically.
+    const supName = (d.supplier_name ?? "").trim().replace(/\s+/g, " ");
+    let supplierId: string | null = null;
+    if (supName) {
+      const norm = supName.toLowerCase();
+      const { data: found, error: fe } = await supabase.from("suppliers").select("id,name");
+      if (fe) throw new Error(fe.message);
+      const hit = (found ?? []).find((x) => x.name.trim().replace(/\s+/g, " ").toLowerCase() === norm);
+      if (hit) supplierId = hit.id;
+      else {
+        const { data: u0 } = await supabase.auth.getUser();
+        const { data: created, error: ce } = await supabase.from("suppliers").insert({ name: supName, created_by: u0.user?.id ?? null }).select("id").single();
+        if (ce) throw new Error(ce.message);
+        supplierId = created.id;
+      }
+    }
     const payload = {
       tag_number: d.tag_number, color: d.color, entry_date: d.entry_date, barn_id: d.barn_id,
-      customer_id: d.customer_id, supplier_name: sup ? sup.name : d.supplier_name, notes: d.notes,
-      supplier_id: d.supplier_id, supplier_cost: total, supplier_paid: d.supplier_paid ?? 0,
+      customer_id: d.customer_id, supplier_name: supName || null, notes: d.notes,
+      supplier_id: supplierId, supplier_cost: total, supplier_paid: d.supplier_paid ?? 0,
       purchase_price_per_kg: d.purchase_price_per_kg, receive_weight: d.receive_weight, farm_weight: d.farm_weight, expenses: d.expenses ?? 0,
-      ...(isSold ? {} : { status: d.status }),
     };
     if (initial) {
       const { error } = await supabase.from("animals").update(payload).eq("id", initial.id);
       if (error) throw new Error(error.message);
     } else {
       const { data: u } = await supabase.auth.getUser();
-      const { error } = await supabase.from("animals").insert({ ...payload, current_weight: d.current_weight ?? d.farm_weight ?? d.receive_weight, created_by: u.user?.id ?? null });
+      const { error } = await supabase.from("animals").insert({ ...payload, status: "available", customer_id: null, current_weight: d.current_weight ?? d.farm_weight ?? d.receive_weight, created_by: u.user?.id ?? null });
       if (error) throw new Error(error.message);
     }
   }, () => onOpenChange(false), initial ? "تم تحديث بيانات الحيوان" : "تمت إضافة الحيوان");
@@ -188,11 +206,9 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
           {barns.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </NativeSelect>
       </Field>
-      <Field label="المورد" {...(!f.supplier_id && f.supplier_name ? { hint: `اسم المورد المسجل: ${f.supplier_name}` } : {})}>
-        <NativeSelect value={f.supplier_id ?? ""} onChange={(e) => set("supplier_id")(e.target.value || null)}>
-          <option value="">بدون مورد</option>
-          {suppliers.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-        </NativeSelect>
+      <Field label="اسم المورد" hint="اكتب الاسم؛ إن لم يكن مسجلاً سيُضاف تلقائياً إلى الموردين">
+        <Input value={f.supplier_name} onChange={(e) => set("supplier_name")(e.target.value)} list="supplier-names" placeholder="مثال: الحاج محمد" autoComplete="off" />
+        <datalist id="supplier-names">{suppliers.map((x) => <option key={x.id} value={x.name} />)}</datalist>
       </Field>
       <div className="grid grid-cols-3 gap-3">
         <Field label="وزن الاستلام (كجم)">
@@ -228,20 +244,9 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
         </Field>
       </div>
       <p className="-mt-2 text-xs text-muted-foreground">تكلفة الشراء منفصلة تماماً عن سعر البيع.</p>
-      {!isSold && (
-        <Field label="الحالة">
-          <div className="grid grid-cols-2 gap-2">
-            {(["available", "reserved"] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => set("status")(s)}
-                className={`tap rounded-2xl border text-sm font-bold transition-colors ${f.status === s ? (s === "available" ? "border-brand bg-brand text-primary-foreground" : "border-amber bg-amber text-accent-foreground") : "glass border-transparent"}`}
-              >
-                {STATUS_LABELS[s]}
-              </button>
-            ))}
-          </div>
+      {initial && (
+        <Field label="الحالة الحالية" hint="تتغير تلقائياً مع الحجز والبيع">
+          <div className="flex h-12 items-center rounded-2xl bg-muted px-3 font-bold">{STATUS_LABELS[initial.status]}</div>
         </Field>
       )}
       <Field label="ملاحظات">
