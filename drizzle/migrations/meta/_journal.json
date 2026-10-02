@@ -71,6 +71,13 @@
       "when": 1790829116079,
       "tag": "0009_calf_purchase_and_weights",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790934738794,
+      "tag": "0010_employees_attendance_leave",
+      "breakpoints": true
     }
   ]
 }

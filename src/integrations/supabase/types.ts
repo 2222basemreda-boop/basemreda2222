@@ -325,6 +325,83 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_attendance: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          present: boolean
+          recorded_by: string | null
+          recorded_by_name: string | null
+          work_date: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          present?: boolean
+          recorded_by?: string | null
+          recorded_by_name?: string | null
+          work_date: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          present?: boolean
+          recorded_by?: string | null
+          recorded_by_name?: string | null
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_attendance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          job_title: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          job_title?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          job_title?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feed_records: {
         Row: {
           animal_count: number | null
@@ -371,6 +448,53 @@ export type Database = {
             columns: ["barn_id"]
             isOneToOne: false
             referencedRelation: "barns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_settlements: {
+        Row: {
+          balance_after: number
+          cash_days: number
+          created_at: string
+          employee_id: string
+          id: string
+          leave_days: number
+          notes: string | null
+          recorded_by: string | null
+          recorded_by_name: string | null
+          settlement_date: string
+        }
+        Insert: {
+          balance_after?: number
+          cash_days?: number
+          created_at?: string
+          employee_id: string
+          id?: string
+          leave_days?: number
+          notes?: string | null
+          recorded_by?: string | null
+          recorded_by_name?: string | null
+          settlement_date?: string
+        }
+        Update: {
+          balance_after?: number
+          cash_days?: number
+          created_at?: string
+          employee_id?: string
+          id?: string
+          leave_days?: number
+          notes?: string | null
+          recorded_by?: string | null
+          recorded_by_name?: string | null
+          settlement_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_settlements_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
@@ -695,6 +819,16 @@ export type Database = {
       cancel_sale: {
         Args: { _reason?: string; _sale_id: string }
         Returns: undefined
+      }
+      employee_leave_balance: {
+        Args: { _employee_id: string }
+        Returns: {
+          cash_days: number
+          earned_days: number
+          leave_taken: number
+          remaining: number
+          worked_days: number
+        }[]
       }
       has_any_role: {
         Args: {
