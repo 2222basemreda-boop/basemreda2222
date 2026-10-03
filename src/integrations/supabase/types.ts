@@ -830,6 +830,17 @@ export type Database = {
           worked_days: number
         }[]
       }
+      employees_leave_summary: {
+        Args: never
+        Returns: {
+          cash_days: number
+          earned_days: number
+          employee_id: string
+          leave_taken: number
+          remaining: number
+          worked_days: number
+        }[]
+      }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
