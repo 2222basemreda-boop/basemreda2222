@@ -56,7 +56,7 @@ function EmployeesPage() {
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="اسم الموظف أو الهاتف…" className="pr-12" />
       </div>
       {isLoading ? <Loading /> : list.length === 0 ? (
-        <EmptyState icon={<Briefcase />} title={data?.length ? "لا توجد نتائج" : "لا يوجد موظفون بعد"} hint={data?.length ? undefined : "أضف الموظفين ثم سجّل حضورهم يومياً."}
+        <EmptyState icon={<Briefcase />} title={data?.length ? "لا توجد نتائج" : "لا يوجد موظفون بعد"} {...(data?.length ? {} : { hint: "أضف الموظفين ثم سجّل حضورهم يومياً." })}
           action={!data?.length && auth.can("employees.write") ? <Button onClick={() => setAdd(true)}><Plus /> إضافة موظف</Button> : undefined} />
       ) : (
         <div className="glass overflow-x-auto rounded-2xl">
