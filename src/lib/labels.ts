@@ -49,4 +49,7 @@ export const ENTITY_LABELS: Record<string, string> = {
   weight_records: "وزن",
   suppliers: "مورد",
   supplier_payments: "دفعة مورد",
+  employees: "موظف",
+  employee_attendance: "حضور موظف",
+  leave_settlements: "تسوية إجازة",
 };

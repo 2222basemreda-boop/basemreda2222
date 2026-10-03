@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Beef, Search, Receipt, Menu, Warehouse, Users, Scale, Wheat,
-  Stethoscope, ShieldCheck, Truck, History, LogOut, Wifi, WifiOff,
+  Stethoscope, ShieldCheck, Truck, History, Briefcase, CalendarCheck, LogOut, Wifi, WifiOff,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,6 +33,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/weight-report", label: "تقرير زيادة الوزن", icon: Scale },
     { to: "/feeding", label: "استهلاك العلف", icon: Wheat },
     { to: "/treatments", label: "العلاج والتحصين", icon: Stethoscope },
+    { to: "/employees", label: "الموظفين والإجازات", icon: Briefcase },
+    { to: "/attendance", label: "الحضور اليومي", icon: CalendarCheck },
     { to: "/activity", label: "سجل النشاط", icon: History, show: auth.can("logs.read") },
     { to: "/users", label: "المستخدمون", icon: ShieldCheck, show: auth.can("users.manage") },
   ].filter((i) => i.show !== false);
