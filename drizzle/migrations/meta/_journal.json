@@ -85,6 +85,13 @@
       "when": 1791004893604,
       "tag": "0011_employees_leave_summary",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791090079476,
+      "tag": "0012_employee_historical_leave",
+      "breakpoints": true
     }
   ]
 }
