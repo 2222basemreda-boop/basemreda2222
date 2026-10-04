@@ -26,11 +26,11 @@ function useSave(fn: () => Promise<void>, done: () => void, ok: string) {
 }
 
 export function EmployeeDialog({ open, onOpenChange, initial }: { open: boolean; onOpenChange: (o: boolean) => void; initial?: Employee | null }) {
-  const blank = { name: "", phone: "", job_title: "", start_date: today(), notes: "", is_active: true };
+  const blank = { name: "", phone: "", job_title: "", start_date: today(), notes: "", is_active: true, prev_leave: "", prev_cash: "" };
   const [f, setF] = useState(blank);
   useEffect(() => {
     if (!open) return;
-    setF(initial ? { name: initial.name, phone: initial.phone ?? "", job_title: initial.job_title ?? "", start_date: initial.start_date, notes: initial.notes ?? "", is_active: initial.is_active } : blank);
+    setF(initial ? { name: initial.name, phone: initial.phone ?? "", job_title: initial.job_title ?? "", start_date: initial.start_date, notes: initial.notes ?? "", is_active: initial.is_active, prev_leave: String(initial.prev_leave_days || ""), prev_cash: String(initial.prev_cash_days || "") } : blank);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial?.id]);
 
@@ -38,7 +38,9 @@ export function EmployeeDialog({ open, onOpenChange, initial }: { open: boolean;
     const name = f.name.trim();
     if (name.length < 2) throw new Error("أدخل اسم الموظف");
     if (!f.start_date) throw new Error("أدخل تاريخ بدء العمل");
-    const payload = { name, phone: f.phone.trim() || null, job_title: f.job_title.trim() || null, start_date: f.start_date, notes: f.notes.trim() || null, is_active: f.is_active };
+    if (!/^\d*$/.test(f.prev_leave.trim()) || !/^\d*$/.test(f.prev_cash.trim())) throw new Error("أدخل أعداداً صحيحة للأيام السابقة");
+    if (f.start_date > today()) throw new Error("تاريخ بدء العمل لا يمكن أن يكون في المستقبل");
+    const payload = { prev_leave_days: Number(f.prev_leave) || 0, prev_cash_days: Number(f.prev_cash) || 0, name, phone: f.phone.trim() || null, job_title: f.job_title.trim() || null, start_date: f.start_date, notes: f.notes.trim() || null, is_active: f.is_active };
     if (initial) {
       const { error } = await supabase.from("employees").update(payload).eq("id", initial.id);
       if (error) throw new Error(error.message);
@@ -56,7 +58,15 @@ export function EmployeeDialog({ open, onOpenChange, initial }: { open: boolean;
         <Field label="رقم الهاتف"><Input value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} inputMode="tel" dir="ltr" className="num" /></Field>
         <Field label="الوظيفة"><Input value={f.job_title} onChange={(e) => setF({ ...f, job_title: e.target.value })} placeholder="مثال: عامل حظيرة" /></Field>
       </div>
-      <Field label="تاريخ بدء العمل" required><Input type="date" value={f.start_date} onChange={(e) => setF({ ...f, start_date: e.target.value })} className="num" /></Field>
+      <Field label="تاريخ بدء العمل الفعلي في المزرعة" required><Input type="date" value={f.start_date} max={today()} onChange={(e) => setF({ ...f, start_date: e.target.value })} className="num" /></Field>
+      <p className="-mt-2 text-xs text-muted-foreground">الأيام من تاريخ البدء حتى يوم الإضافة للتطبيق تُحسب أيام عمل تلقائياً، وبعدها يُعتمد الحضور اليومي.</p>
+      <div className="rounded-2xl border border-border p-3 space-y-3">
+        <p className="text-sm font-bold">الإجازات والتسويات السابقة</p>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="إجازات أُخذت سابقاً (يوم)"><Input value={f.prev_leave} onChange={(e) => setF({ ...f, prev_leave: e.target.value })} type="number" inputMode="numeric" min={0} step={1} className="num" placeholder="0" /></Field>
+          <Field label="تعويض نقدي سابق (يوم)"><Input value={f.prev_cash} onChange={(e) => setF({ ...f, prev_cash: e.target.value })} type="number" inputMode="numeric" min={0} step={1} className="num" placeholder="0" /></Field>
+        </div>
+      </div>
       {initial && (
         <label className="flex items-center gap-2 text-sm font-bold">
           <input type="checkbox" className="size-5 accent-[var(--brand)]" checked={f.is_active} onChange={(e) => setF({ ...f, is_active: e.target.checked })} />

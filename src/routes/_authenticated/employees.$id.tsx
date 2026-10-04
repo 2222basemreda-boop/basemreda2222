@@ -52,11 +52,16 @@ function EmployeePage() {
 
       <div>
         <SectionTitle>الإجازات</SectionTitle>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-          <StatTile label="أيام العمل المكتملة" value={fmtNum(b.worked_days)} hint={`باقي ${daysToNextLeave(b.worked_days)} يوم للإجازة القادمة`} />
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <StatTile label="تاريخ بدء العمل" value={fmtDate(b.start_date)} hint={`الحضور اليومي منذ ${fmtDate(b.attendance_start_date)}`} />
+          <StatTile label="أيام عمل سابقة (تاريخية)" value={fmtNum(b.historical_days)} tone="muted" />
+          <StatTile label="أيام حضور في التطبيق" value={fmtNum(b.attendance_days)} tone="muted" />
+          <StatTile label="إجمالي أيام العمل المكتملة" value={fmtNum(b.worked_days)} hint={`باقي ${daysToNextLeave(b.worked_days)} يوم للإجازة القادمة`} />
           <StatTile label="الإجازات المكتسبة" value={`${fmtNum(b.earned_days)} يوم`} />
-          <StatTile label="إجازات مستخدمة" value={`${fmtNum(b.leave_taken)} يوم`} tone="muted" />
-          <StatTile label="تعويض نقدي" value={`${fmtNum(b.cash_days)} يوم`} tone="muted" />
+          <StatTile label="إجازات سابقة" value={`${fmtNum(b.prev_leave)} يوم`} tone="muted" />
+          <StatTile label="تعويض نقدي سابق" value={`${fmtNum(b.prev_cash)} يوم`} tone="muted" />
+          <StatTile label="إجازات عبر التطبيق" value={`${fmtNum(b.app_leave)} يوم`} tone="muted" />
+          <StatTile label="تعويض نقدي عبر التطبيق" value={`${fmtNum(b.app_cash)} يوم`} tone="muted" />
           <StatTile label="الرصيد المتبقي" value={`${fmtNum(b.remaining)} يوم`} tone="amber" />
         </div>
       </div>
