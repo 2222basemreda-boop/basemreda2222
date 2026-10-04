@@ -365,6 +365,7 @@ export type Database = {
       }
       employees: {
         Row: {
+          attendance_start_date: string
           created_at: string
           created_by: string | null
           id: string
@@ -373,10 +374,13 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          prev_cash_days: number
+          prev_leave_days: number
           start_date: string
           updated_at: string
         }
         Insert: {
+          attendance_start_date?: string
           created_at?: string
           created_by?: string | null
           id?: string
@@ -385,10 +389,13 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          prev_cash_days?: number
+          prev_leave_days?: number
           start_date?: string
           updated_at?: string
         }
         Update: {
+          attendance_start_date?: string
           created_at?: string
           created_by?: string | null
           id?: string
@@ -397,6 +404,8 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          prev_cash_days?: number
+          prev_leave_days?: number
           start_date?: string
           updated_at?: string
         }
@@ -827,6 +836,22 @@ export type Database = {
           earned_days: number
           leave_taken: number
           remaining: number
+          worked_days: number
+        }[]
+      }
+      employee_leave_breakdown: {
+        Args: { _employee_id: string }
+        Returns: {
+          app_cash: number
+          app_leave: number
+          attendance_days: number
+          attendance_start_date: string
+          earned_days: number
+          historical_days: number
+          prev_cash: number
+          prev_leave: number
+          remaining: number
+          start_date: string
           worked_days: number
         }[]
       }
