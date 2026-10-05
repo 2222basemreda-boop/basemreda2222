@@ -363,6 +363,41 @@ export type Database = {
           },
         ]
       }
+      employee_periods: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          end_date: string | null
+          id: string
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          end_date?: string | null
+          id?: string
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          end_date?: string | null
+          id?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_periods_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           attendance_start_date: string
@@ -371,6 +406,7 @@ export type Database = {
           id: string
           is_active: boolean
           job_title: string | null
+          left_date: string | null
           name: string
           notes: string | null
           phone: string | null
@@ -386,6 +422,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           job_title?: string | null
+          left_date?: string | null
           name: string
           notes?: string | null
           phone?: string | null
@@ -401,6 +438,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           job_title?: string | null
+          left_date?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
@@ -829,6 +867,10 @@ export type Database = {
         Args: { _reason?: string; _sale_id: string }
         Returns: undefined
       }
+      employed_on: {
+        Args: { _day: string; _employee_id: string }
+        Returns: boolean
+      }
       employee_leave_balance: {
         Args: { _employee_id: string }
         Returns: {
@@ -896,6 +938,14 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      mark_employee_left: {
+        Args: { _employee_id: string; _last_date: string }
+        Returns: undefined
+      }
+      reactivate_employee: {
+        Args: { _employee_id: string; _start_date: string }
+        Returns: undefined
+      }
       reserve_animal: {
         Args: { _animal_id: string; _customer_id: string; _note?: string }
         Returns: undefined

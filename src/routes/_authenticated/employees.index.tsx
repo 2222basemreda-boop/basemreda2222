@@ -29,11 +29,12 @@ function EmployeesPage() {
   const { data, isLoading } = useQuery(employeesQuery);
   const [q, setQ] = useState("");
   const [add, setAdd] = useState(false);
+  const [st, setSt] = useState<"active" | "left" | "all">("active");
   const list = useMemo(() => {
     const t = q.trim().toLowerCase();
-    return (data ?? []).filter((e) => !t || e.name.toLowerCase().includes(t) || (e.phone ?? "").includes(t));
-  }, [data, q]);
-  const totalRemaining = (data ?? []).reduce((s, e) => s + e.balance.remaining, 0);
+    return (data ?? []).filter((e) => st === "all" || (st === "active") === e.is_active).filter((e) => !t || e.name.toLowerCase().includes(t) || (e.phone ?? "").includes(t));
+  }, [data, q, st]);
+  const totalRemaining = (data ?? []).filter((e) => e.is_active).reduce((s, e) => s + e.balance.remaining, 0);
 
   return (
     <div className="space-y-4">
@@ -50,6 +51,11 @@ function EmployeesPage() {
       <div className="grid grid-cols-2 gap-3">
         <StatTile label="عدد الموظفين" value={fmtNum(data?.filter((e) => e.is_active).length ?? 0)} />
         <StatTile label="إجمالي أرصدة الإجازات" value={`${fmtNum(totalRemaining)} يوم`} tone="amber" />
+      </div>
+      <div className="flex gap-2">
+        {([["active", "على رأس العمل"], ["left", "منتهي الخدمة"], ["all", "الكل"]] as const).map(([k, l]) => (
+          <Button key={k} size="sm" variant={st === k ? "default" : "outline"} onClick={() => setSt(k)}>{l}</Button>
+        ))}
       </div>
       <div className="relative">
         <Search className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
@@ -69,7 +75,7 @@ function EmployeesPage() {
                 <tr key={e.id} className="border-b border-border/50 last:border-0">
                   <td className="p-3">
                     <Link to="/employees/$id" params={{ id: e.id }} className="font-bold text-brand underline-offset-2 hover:underline">{e.name}</Link>
-                    <p className="text-xs text-muted-foreground">{e.job_title ?? ""}{!e.is_active && " · غير نشط"}</p>
+                    <p className="text-xs text-muted-foreground">{e.job_title ?? ""}{!e.is_active && " · منتهي الخدمة"}</p>
                   </td>
                   <td className="num p-3">{fmtNum(e.balance.worked_days)}</td>
                   <td className="num p-3">{fmtNum(e.balance.earned_days)}</td>

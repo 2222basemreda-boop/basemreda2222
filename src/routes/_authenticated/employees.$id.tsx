@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Pencil, Plane, CalendarCheck } from "lucide-react";
+import { ArrowRight, Pencil, Plane, CalendarCheck, UserX, UserCheck } from "lucide-react";
 import { employeeQuery, daysToNextLeave } from "@/lib/employees";
 import { fmtDate, fmtNum } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Loading, EmptyState, GlassCard, StatTile, SectionTitle } from "@/components/farm/ui";
-import { EmployeeDialog, LeaveSettlementDialog } from "@/components/farm/employee-forms";
+import { EmployeeDialog, LeaveSettlementDialog, EmployeeStatusDialog } from "@/components/farm/employee-forms";
 
 export const Route = createFileRoute("/_authenticated/employees/$id")({
   head: () => ({
@@ -35,10 +35,11 @@ function EmployeePage() {
   const { data, isLoading } = useQuery(employeeQuery(id));
   const [edit, setEdit] = useState(false);
   const [settle, setSettle] = useState(false);
+  const [status, setStatus] = useState(false);
 
   if (isLoading) return <Loading />;
   if (!data) return <EmptyState title="الموظف غير موجود" action={<Button asChild variant="outline"><Link to="/employees">العودة للموظفين</Link></Button>} />;
-  const { employee: e, balance: b, attendance, ledger } = data;
+  const { employee: e, balance: b, attendance, ledger, periods } = data;
   const canWrite = auth.can("employees.write");
 
   return (
@@ -51,9 +52,17 @@ function EmployeePage() {
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => setEdit(true)}><Pencil /> تعديل</Button>
             <Button onClick={() => setSettle(true)}><Plane /> تسوية إجازة</Button>
+            {e.is_active
+              ? <Button variant="outline" onClick={() => setStatus(true)}><UserX /> إنهاء الخدمة</Button>
+              : <Button variant="outline" onClick={() => setStatus(true)}><UserCheck /> إعادة تفعيل</Button>}
           </div>
         )}
       />
+      <GlassCard className="flex flex-wrap items-center gap-2 text-sm">
+        <span className={`rounded-full px-3 py-1 text-xs font-bold ${e.is_active ? "bg-available/15 text-available" : "bg-muted text-muted-foreground"}`}>{e.is_active ? "على رأس العمل" : "منتهي الخدمة"}</span>
+        {!e.is_active && e.left_date && <span>آخر يوم عمل: <b className="num">{fmtDate(e.left_date)}</b></span>}
+        {periods.length > 0 && <span className="text-muted-foreground">فترات العمل: {periods.map((p) => `${fmtDate(p.start_date)} ← ${p.end_date ? fmtDate(p.end_date) : "حتى الآن"}`).join(" · ")}</span>}
+      </GlassCard>
       {e.notes && <GlassCard className="text-sm">{e.notes}</GlassCard>}
 
       <div>
@@ -70,7 +79,7 @@ function EmployeePage() {
           <StatTile label="تعويض نقدي عبر التطبيق" value={`${fmtNum(b.app_cash)} يوم`} tone="muted" />
           <StatTile label="الإجازات المأخوذة (إجمالي)" value={`${fmtNum(b.prev_leave + b.prev_cash + b.app_leave + b.app_cash)} يوم`} tone="muted" />
           <StatTile label="إجازة مقدّمة (سالب)" value={`${fmtNum(Math.max(0, -b.remaining))} يوم`} tone="muted" />
-          <StatTile label="الاستحقاق القادم (+4)" value={fmtDate(nextAccrual(daysToNextLeave(b.worked_days)))} hint={`بعد ${daysToNextLeave(b.worked_days)} يوم عمل (تقديري)`} />
+          <StatTile label="الاستحقاق القادم (+4)" value={e.is_active ? fmtDate(nextAccrual(daysToNextLeave(b.worked_days))) : "متوقف"} hint={`بعد ${daysToNextLeave(b.worked_days)} يوم عمل (تقديري)`} />
           <StatTile label="الرصيد الحالي" value={<span dir="ltr">{fmtNum(b.remaining)} يوم</span>} tone="amber" />
         </div>
       </div>
@@ -117,6 +126,7 @@ function EmployeePage() {
       </div>
 
       <EmployeeDialog open={edit} onOpenChange={setEdit} initial={e} />
+      <EmployeeStatusDialog open={status} onOpenChange={setStatus} employee={e} mode={e.is_active ? "leave" : "reactivate"} />
       <LeaveSettlementDialog open={settle} onOpenChange={setSettle} employee={e} remaining={b.remaining} />
     </div>
   );
