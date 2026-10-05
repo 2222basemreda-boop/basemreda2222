@@ -855,6 +855,20 @@ export type Database = {
           worked_days: number
         }[]
       }
+      employee_leave_ledger: {
+        Args: { _employee_id: string }
+        Returns: {
+          added: number
+          cash_days: number
+          entry_date: string
+          kind: string
+          leave_days: number
+          new_balance: number
+          notes: string
+          prev_balance: number
+          recorded_by_name: string
+        }[]
+      }
       employees_leave_summary: {
         Args: never
         Returns: {

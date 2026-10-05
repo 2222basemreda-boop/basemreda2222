@@ -43,13 +43,13 @@ export const employeeQuery = (id: string) =>
         supabase.from("employees").select("*").eq("id", id).maybeSingle(),
         supabase.rpc("employee_leave_breakdown", { _employee_id: id }),
         supabase.from("employee_attendance").select("*").eq("employee_id", id).order("work_date", { ascending: false }).limit(60),
-        supabase.from("leave_settlements").select("*").eq("employee_id", id).order("settlement_date", { ascending: false }).order("created_at", { ascending: false }),
+        supabase.rpc("employee_leave_ledger", { _employee_id: id }),
       ]);
       const e = must(emp);
       if (!e) return null;
       const b = (must(bal) ?? [])[0] as LeaveBreakdown | undefined;
       const z: LeaveBreakdown = { start_date: e.start_date, attendance_start_date: e.attendance_start_date, historical_days: 0, attendance_days: 0, worked_days: 0, earned_days: 0, prev_leave: 0, prev_cash: 0, app_leave: 0, app_cash: 0, remaining: 0 };
-      return { employee: e, balance: b ?? z, attendance: must(att), settlements: must(set) };
+      return { employee: e, balance: b ?? z, attendance: must(att), ledger: must(set) ?? [] };
     },
   });
 

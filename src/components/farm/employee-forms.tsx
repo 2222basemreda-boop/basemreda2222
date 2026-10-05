@@ -88,7 +88,6 @@ export function LeaveSettlementDialog({ open, onOpenChange, employee, remaining 
   const save = useSave(async () => {
     if (!/^\d*$/.test(f.leave.trim()) || !/^\d*$/.test(f.cash.trim())) throw new Error("أدخل أعداداً صحيحة للأيام");
     if (leave + cash <= 0) throw new Error("أدخل أيام إجازة فعلية أو أيام تعويض نقدي");
-    if (after < 0) throw new Error("الأيام المطلوبة أكبر من رصيد الإجازات المتاح");
     const { error } = await supabase.from("leave_settlements").insert({ employee_id: employee.id, leave_days: leave, cash_days: cash, settlement_date: f.date, notes: f.notes.trim() || null });
     if (error) throw new Error(error.message);
   }, () => onOpenChange(false), "تم تسجيل تسوية الإجازة");
@@ -100,7 +99,7 @@ export function LeaveSettlementDialog({ open, onOpenChange, employee, remaining 
         <Field label="أيام تعويض نقدي"><Input value={f.cash} onChange={(e) => setF({ ...f, cash: e.target.value })} type="number" inputMode="numeric" min={0} step={1} className="num" placeholder="0" /></Field>
       </div>
       <Field label="الرصيد بعد التسوية">
-        <div className={`num flex h-12 items-center rounded-2xl px-3 font-bold ${after < 0 ? "bg-destructive/10 text-destructive" : "bg-muted"}`}>{after} يوم</div>
+        <div className={`num flex h-12 items-center rounded-2xl px-3 font-bold ${after < 0 ? "bg-amber-500/10" : "bg-muted"}`}>{after} يوم{after < 0 && " (إجازة مقدّمة تُخصم من الاستحقاق القادم)"}</div>
       </Field>
       <Field label="التاريخ" required><Input type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} className="num" /></Field>
       <Field label="ملاحظات"><Textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></Field>
