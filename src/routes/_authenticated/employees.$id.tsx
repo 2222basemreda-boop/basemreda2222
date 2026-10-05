@@ -23,6 +23,12 @@ export const Route = createFileRoute("/_authenticated/employees/$id")({
   component: EmployeePage,
 });
 
+function nextAccrual(daysLeft: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + daysLeft - 1);
+  return d.toISOString().slice(0, 10);
+}
+
 function EmployeePage() {
   const { id } = Route.useParams();
   const auth = useAuth();
@@ -32,7 +38,7 @@ function EmployeePage() {
 
   if (isLoading) return <Loading />;
   if (!data) return <EmptyState title="الموظف غير موجود" action={<Button asChild variant="outline"><Link to="/employees">العودة للموظفين</Link></Button>} />;
-  const { employee: e, balance: b, attendance, settlements } = data;
+  const { employee: e, balance: b, attendance, ledger } = data;
   const canWrite = auth.can("employees.write");
 
   return (
@@ -44,7 +50,7 @@ function EmployeePage() {
         action={canWrite && (
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => setEdit(true)}><Pencil /> تعديل</Button>
-            <Button onClick={() => setSettle(true)} disabled={b.remaining <= 0}><Plane /> تسوية إجازة</Button>
+            <Button onClick={() => setSettle(true)}><Plane /> تسوية إجازة</Button>
           </div>
         )}
       />
@@ -62,27 +68,33 @@ function EmployeePage() {
           <StatTile label="تعويض نقدي سابق" value={`${fmtNum(b.prev_cash)} يوم`} tone="muted" />
           <StatTile label="إجازات عبر التطبيق" value={`${fmtNum(b.app_leave)} يوم`} tone="muted" />
           <StatTile label="تعويض نقدي عبر التطبيق" value={`${fmtNum(b.app_cash)} يوم`} tone="muted" />
-          <StatTile label="الرصيد المتبقي" value={`${fmtNum(b.remaining)} يوم`} tone="amber" />
+          <StatTile label="الإجازات المأخوذة (إجمالي)" value={`${fmtNum(b.prev_leave + b.prev_cash + b.app_leave + b.app_cash)} يوم`} tone="muted" />
+          <StatTile label="إجازة مقدّمة (سالب)" value={`${fmtNum(Math.max(0, -b.remaining))} يوم`} tone="muted" />
+          <StatTile label="الاستحقاق القادم (+4)" value={fmtDate(nextAccrual(daysToNextLeave(b.worked_days)))} hint={`بعد ${daysToNextLeave(b.worked_days)} يوم عمل (تقديري)`} />
+          <StatTile label="الرصيد الحالي" value={<span dir="ltr">{fmtNum(b.remaining)} يوم</span>} tone="amber" />
         </div>
       </div>
 
       <div>
-        <SectionTitle>سجل تسويات الإجازات</SectionTitle>
-        {settlements.length === 0 ? <EmptyState icon={<Plane />} title="لا توجد تسويات مسجلة" /> : (
+        <SectionTitle>سجل حركات الإجازات</SectionTitle>
+        {ledger.length === 0 ? <EmptyState icon={<Plane />} title="لا توجد حركات بعد" /> : (
           <div className="glass overflow-x-auto rounded-2xl">
-            <table className="w-full min-w-[600px] text-sm">
+            <table className="w-full min-w-[760px] text-sm">
               <thead className="text-xs text-muted-foreground"><tr className="border-b border-border">
-                {["التاريخ", "الموظف", "إجازة فعلية", "تعويض نقدي", "الرصيد بعدها", "سجّلها"].map((h) => <th key={h} className="p-3 text-start font-medium">{h}</th>)}
+                {["التاريخ", "الموظف", "الحركة", "إجازة فعلية", "تعويض نقدي", "المضاف", "الرصيد السابق", "الرصيد الجديد", "سجّلها"].map((h) => <th key={h} className="p-3 text-start font-medium">{h}</th>)}
               </tr></thead>
               <tbody>
-                {settlements.map((s) => (
-                  <tr key={s.id} className="border-b border-border/50 last:border-0">
-                    <td className="num p-3">{fmtDate(s.settlement_date)}</td>
+                {ledger.map((s, i) => (
+                  <tr key={i} className="border-b border-border/50 last:border-0">
+                    <td className="num p-3">{fmtDate(s.entry_date)}</td>
                     <td className="p-3">{e.name}</td>
+                    <td className="p-3 font-bold">{s.kind === "accrual" ? "استحقاق 30 يوم" : s.kind === "previous" ? "إجازات سابقة" : "تسوية إجازة"}</td>
                     <td className="num p-3">{fmtNum(s.leave_days)}</td>
                     <td className="num p-3">{fmtNum(s.cash_days)}</td>
-                    <td className="num p-3 font-bold">{fmtNum(s.balance_after)}</td>
-                    <td className="p-3">{s.recorded_by_name || "—"}{s.notes && <p className="text-xs text-muted-foreground">{s.notes}</p>}</td>
+                    <td className="num p-3">{s.added ? `+${s.added}` : "—"}</td>
+                    <td className="num p-3" dir="ltr">{fmtNum(s.prev_balance)}</td>
+                    <td className="num p-3 font-bold" dir="ltr">{fmtNum(s.new_balance)}</td>
+                    <td className="p-3">{s.kind === "accrual" ? "تلقائي" : s.recorded_by_name || "—"}{s.notes && <p className="text-xs text-muted-foreground">{s.notes}</p>}</td>
                   </tr>
                 ))}
               </tbody>
