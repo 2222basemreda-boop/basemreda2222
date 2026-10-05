@@ -12,6 +12,11 @@ import type { Employee } from "@/lib/employees";
 function friendly(msg: string) {
   if (msg.includes("LEAVE_BALANCE_EXCEEDED")) return "الأيام المطلوبة أكبر من رصيد الإجازات المتاح";
   if (msg.includes("LEAVE_BALANCE_NEGATIVE")) return "لا يمكن هذا التعديل لأنه سيجعل رصيد الإجازات بالسالب";
+  if (msg.includes("EMPLOYEE_NOT_EMPLOYED_ON_DATE")) return "الموظف ليس على رأس العمل في هذا التاريخ";
+  if (msg.includes("LAST_DATE_BEFORE_START")) return "آخر يوم عمل قبل تاريخ بدء الفترة الحالية";
+  if (msg.includes("NEW_START_BEFORE_END")) return "تاريخ البدء الجديد يجب أن يكون بعد آخر يوم عمل سابق";
+  if (msg.includes("EMPLOYEE_ALREADY_LEFT")) return "الموظف منتهي الخدمة بالفعل";
+  if (msg.includes("EMPLOYEE_ALREADY_ACTIVE")) return "الموظف على رأس العمل بالفعل";
   if (msg.includes("row-level security")) return "ليست لديك صلاحية لهذه العملية";
   return msg;
 }
@@ -40,7 +45,7 @@ export function EmployeeDialog({ open, onOpenChange, initial }: { open: boolean;
     if (!f.start_date) throw new Error("أدخل تاريخ بدء العمل");
     if (!/^\d*$/.test(f.prev_leave.trim()) || !/^\d*$/.test(f.prev_cash.trim())) throw new Error("أدخل أعداداً صحيحة للأيام السابقة");
     if (f.start_date > today()) throw new Error("تاريخ بدء العمل لا يمكن أن يكون في المستقبل");
-    const payload = { prev_leave_days: Number(f.prev_leave) || 0, prev_cash_days: Number(f.prev_cash) || 0, name, phone: f.phone.trim() || null, job_title: f.job_title.trim() || null, start_date: f.start_date, notes: f.notes.trim() || null, is_active: f.is_active };
+    const payload = { prev_leave_days: Number(f.prev_leave) || 0, prev_cash_days: Number(f.prev_cash) || 0, name, phone: f.phone.trim() || null, job_title: f.job_title.trim() || null, start_date: f.start_date, notes: f.notes.trim() || null };
     if (initial) {
       const { error } = await supabase.from("employees").update(payload).eq("id", initial.id);
       if (error) throw new Error(error.message);
@@ -67,12 +72,6 @@ export function EmployeeDialog({ open, onOpenChange, initial }: { open: boolean;
           <Field label="تعويض نقدي سابق (يوم)"><Input value={f.prev_cash} onChange={(e) => setF({ ...f, prev_cash: e.target.value })} type="number" inputMode="numeric" min={0} step={1} className="num" placeholder="0" /></Field>
         </div>
       </div>
-      {initial && (
-        <label className="flex items-center gap-2 text-sm font-bold">
-          <input type="checkbox" className="size-5 accent-[var(--brand)]" checked={f.is_active} onChange={(e) => setF({ ...f, is_active: e.target.checked })} />
-          موظف حالي (يظهر في الحضور اليومي)
-        </label>
-      )}
       <Field label="ملاحظات"><Textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></Field>
     </FormDialog>
   );
@@ -103,6 +102,25 @@ export function LeaveSettlementDialog({ open, onOpenChange, employee, remaining 
       </Field>
       <Field label="التاريخ" required><Input type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} className="num" /></Field>
       <Field label="ملاحظات"><Textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></Field>
+    </FormDialog>
+  );
+}
+
+export function EmployeeStatusDialog({ open, onOpenChange, employee, mode }: { open: boolean; onOpenChange: (o: boolean) => void; employee: Employee; mode: "leave" | "reactivate" }) {
+  const [d, setD] = useState(today());
+  useEffect(() => { if (open) setD(today()); }, [open]);
+  const save = useSave(async () => {
+    if (!d) throw new Error("أدخل التاريخ");
+    const { error } = mode === "leave"
+      ? await supabase.rpc("mark_employee_left", { _employee_id: employee.id, _last_date: d })
+      : await supabase.rpc("reactivate_employee", { _employee_id: employee.id, _start_date: d });
+    if (error) throw new Error(error.message);
+  }, () => onOpenChange(false), mode === "leave" ? "تم تسجيل انتهاء الخدمة" : "تمت إعادة تفعيل الموظف");
+  return (
+    <FormDialog open={open} onOpenChange={onOpenChange} title={mode === "leave" ? `إنهاء خدمة — ${employee.name}` : `إعادة تفعيل — ${employee.name}`}
+      description={mode === "leave" ? "لن يُحذف أي سجل. يتوقف احتساب أيام العمل والإجازات بعد آخر يوم عمل." : "تبدأ فترة عمل جديدة مع الاحتفاظ بالفترات والسجلات السابقة."}
+      onSubmit={() => save.mutate()} submitting={save.isPending}>
+      <Field label={mode === "leave" ? "آخر يوم عمل" : "تاريخ بدء العمل الجديد"} required><Input type="date" value={d} onChange={(e) => setD(e.target.value)} className="num" /></Field>
     </FormDialog>
   );
 }

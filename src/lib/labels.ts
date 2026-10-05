@@ -51,5 +51,6 @@ export const ENTITY_LABELS: Record<string, string> = {
   supplier_payments: "دفعة مورد",
   employees: "موظف",
   employee_attendance: "حضور موظف",
+  employee_periods: "فترة عمل موظف",
   leave_settlements: "تسوية إجازة",
 };
