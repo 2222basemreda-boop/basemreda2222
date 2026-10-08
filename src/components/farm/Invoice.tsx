@@ -5,6 +5,8 @@ import { fmtDate, fmtMoney, fmtWeight, invoiceTotal } from "@/lib/format";
 import { PAYMENT_LABELS, type PaymentStatus } from "@/lib/labels";
 
 export const FARM_NAME = "Elemam Farm";
+export const FARM_NAME_AR = "مزرعة الإمام";
+const LOGO = "/invoice-logo.png";
 
 export type InvoiceData = {
   invoice_number: string;
@@ -84,23 +86,34 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
 
 export function InvoiceView({ data }: { data: InvoiceData }) {
   return (
-    <div className="space-y-3">
-      <div className="rounded-2xl bg-brand/10 p-4 text-center">
-        <p className="font-display text-xl text-brand">{FARM_NAME}</p>
-        <p className="text-xs text-muted-foreground">فاتورة بيع ماشية</p>
-        <p className="num mt-1 text-sm font-bold">{data.invoice_number}</p>
-        <p className="text-xs text-muted-foreground">{fmtDate(data.sale_date)}</p>
+    <div className="relative space-y-3 overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center opacity-[0.05]">
+        <img src={LOGO} alt="" className="w-2/3 max-w-xs" />
+        <p className="font-display text-3xl text-brand">{FARM_NAME_AR}</p>
+      </div>
+      <div className="relative flex items-center justify-between gap-3 rounded-2xl border-b-4 border-amber bg-brand-deep p-4 text-primary-foreground">
+        <div className="flex items-center gap-3">
+          <img src={LOGO} alt="Elemam Farm" className="size-14 rounded-full bg-primary-foreground p-1 ring-2 ring-amber" />
+          <div>
+            <p className="font-display text-xl leading-tight" dir="ltr">{FARM_NAME}</p>
+            <p className="font-display text-sm text-amber">{FARM_NAME_AR}</p>
+          </div>
+        </div>
+        <div className="text-left text-xs">
+          <p className="opacity-80">فاتورة بيع ماشية</p>
+          <p className="num text-sm">{data.invoice_number}</p>
+          <p className="opacity-80">{fmtDate(data.sale_date)}</p>
+        </div>
       </div>
 
-      <div className="rounded-2xl border border-border/60 p-3">
+      <div className="relative rounded-2xl border border-border/60 p-3">
         <p className="mb-1 text-xs font-bold text-brand">بيانات العميل</p>
         <Row label="الاسم" value={data.customer?.name ?? "—"} />
         <Row label="كود العميل" value={data.customer?.code ?? "—"} />
         <Row label="الهاتف" value={data.customer?.phone ?? "—"} />
-        <Row label="العنوان" value={data.customer?.address ?? "—"} />
       </div>
 
-      <div className="rounded-2xl border border-border/60 p-3">
+      <div className="relative rounded-2xl border border-border/60 p-3">
         <p className="mb-1 text-xs font-bold text-brand">بيانات العجل</p>
         <Row label="رقم العجل" value={data.animal?.tag_number ?? "—"} />
         <Row label="اللون" value={data.animal?.color ?? "—"} />
@@ -108,9 +121,9 @@ export function InvoiceView({ data }: { data: InvoiceData }) {
         <Row label="سعر الكيلو" value={fmtMoney(data.price_per_kg)} />
       </div>
 
-      <div className="rounded-2xl border border-border/60 p-3">
+      <div className="relative rounded-2xl border border-border/60 p-3">
         <p className="mb-1 text-xs font-bold text-brand">الحساب</p>
-        <Row label="إجمالي الوزن والسعر" value={fmtMoney(data.base_total)} />
+        <Row label="الإجمالي" value={fmtMoney(data.base_total)} />
         <Row label="إكرامية عمال" value={fmtMoney(data.worker_tip)} />
         <Row label="نقل" value={fmtMoney(data.transportation)} />
         <Row label="دبح" value={fmtMoney(data.slaughtering)} />
@@ -145,25 +158,31 @@ export function buildInvoiceHtml(data: InvoiceData) {
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet" />
 <style>
 *{box-sizing:border-box}
-body{font-family:Tajawal,system-ui,sans-serif;color:#1d2b24;margin:0;padding:24px;background:#fff}
-.sheet{max-width:780px;margin:0 auto}
-.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #2E7D5B;padding-bottom:12px;margin-bottom:18px}
-.farm{font-family:Cairo,sans-serif;font-size:26px;font-weight:700;color:#2E7D5B;margin:0}
+body{font-family:Tajawal,system-ui,sans-serif;color:#1d2b24;margin:0;padding:24px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sheet{max-width:780px;margin:0 auto;position:relative}
+.wm{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:.05;pointer-events:none;z-index:0}
+.wm img{width:60%}.wm p{font-family:Cairo,sans-serif;font-size:44px;font-weight:700;color:#1B4D32;margin:0}
+.sheet>*:not(.wm){position:relative;z-index:1}
+.head{display:flex;justify-content:space-between;align-items:center;background:#1B4D32;color:#fff;border-bottom:4px solid #C9A34A;border-radius:12px;padding:14px 18px;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px}.brand img{width:64px;height:64px;background:#fff;border-radius:50%;padding:4px;border:2px solid #C9A34A}
+.farm{font-family:Cairo,sans-serif;font-size:26px;font-weight:700;color:#fff;margin:0}.farm-ar{font-family:Cairo,sans-serif;color:#C9A34A;font-size:16px;font-weight:700;margin:0}
+.head .sub{color:#dfe9e3}
 .sub{color:#5c6b63;font-size:13px;margin:2px 0 0}
 .inv{text-align:left}
 .inv b{display:block;font-size:18px}
-h2{font-family:Cairo,sans-serif;font-size:15px;color:#2E7D5B;margin:18px 0 6px}
+h2{font-family:Cairo,sans-serif;font-size:15px;color:#1B4D32;border-right:4px solid #C9A34A;padding-right:8px;margin:18px 0 6px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{border:1px solid #d7e2db;padding:8px 10px;text-align:right}
-th{background:#f1f7f3;width:38%;font-weight:700}
+th{background:rgba(241,247,243,.85);width:38%;font-weight:700}
 .totals th{background:#eaf4ee}
-.grand td{font-size:17px;font-weight:700;color:#2E7D5B}
+.grand th,.grand td{font-size:17px;font-weight:700;color:#fff;background:#1B4D32}
 .notes{margin-top:14px;font-size:13px;border:1px dashed #cdd9d2;padding:10px;border-radius:8px}
 .signs{display:flex;justify-content:space-between;margin-top:42px;font-size:13px;color:#5c6b63}
 @media print{body{padding:0}.noprint{display:none}}
 </style></head><body><div class="sheet">
+<div class="wm"><img src="${location.origin}${LOGO}" alt="" /><p>${FARM_NAME_AR}</p></div>
 <div class="head">
-  <div><p class="farm">${FARM_NAME}</p><p class="sub">فاتورة بيع ماشية</p></div>
+  <div class="brand"><img src="${location.origin}${LOGO}" alt="" /><div><p class="farm" dir="ltr">${FARM_NAME}</p><p class="farm-ar">${FARM_NAME_AR}</p><p class="sub">فاتورة بيع ماشية</p></div></div>
   <div class="inv"><span class="sub">رقم الفاتورة</span><b>${esc(data.invoice_number)}</b><span class="sub">${esc(fmtDate(data.sale_date))}</span></div>
 </div>
 <h2>بيانات العميل</h2>
@@ -171,7 +190,6 @@ th{background:#f1f7f3;width:38%;font-weight:700}
     ["الاسم", data.customer?.name ?? "—"],
     ["كود العميل", data.customer?.code ?? "—"],
     ["الهاتف", data.customer?.phone ?? "—"],
-    ["العنوان", data.customer?.address ?? "—"],
   ])}</table>
 <h2>بيانات العجل</h2>
 <table>${rows([
@@ -183,7 +201,7 @@ th{background:#f1f7f3;width:38%;font-weight:700}
 <h2>الحساب</h2>
 <table class="totals">
   ${rows([
-    ["إجمالي الوزن والسعر", fmtMoney(data.base_total)],
+    ["الإجمالي", fmtMoney(data.base_total)],
     ["إكرامية عمال", fmtMoney(data.worker_tip)],
     ["نقل", fmtMoney(data.transportation)],
     ["دبح", fmtMoney(data.slaughtering)],
@@ -219,12 +237,11 @@ function canvasRows(data: InvoiceData): [string, string][] {
     ["اسم العميل", data.customer?.name ?? "—"],
     ["كود العميل", data.customer?.code ?? "—"],
     ["الهاتف", data.customer?.phone ?? "—"],
-    ["العنوان", data.customer?.address ?? "—"],
     ["رقم العجل", data.animal?.tag_number ?? "—"],
     ["اللون", data.animal?.color ?? "—"],
     ["الوزن", fmtWeight(data.weight)],
     ["سعر الكيلو", fmtMoney(data.price_per_kg)],
-    ["إجمالي الوزن والسعر", fmtMoney(data.base_total)],
+    ["الإجمالي", fmtMoney(data.base_total)],
     ["إكرامية عمال", fmtMoney(data.worker_tip)],
     ["نقل", fmtMoney(data.transportation)],
     ["دبح", fmtMoney(data.slaughtering)],
@@ -236,46 +253,62 @@ function canvasRows(data: InvoiceData): [string, string][] {
   ];
 }
 
-export function downloadInvoice(data: InvoiceData) {
+function loadImg(src: string) {
+  return new Promise<HTMLImageElement | null>((res) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+}
+
+export async function downloadInvoice(data: InvoiceData) {
+  const logo = await loadImg(LOGO);
   const rows = canvasRows(data);
   const noteLines = data.notes ? Math.ceil(data.notes.length / 60) : 0;
   const canvas = document.createElement("canvas");
   canvas.width = CANVAS_WIDTH;
-  canvas.height = 310 + rows.length * 54 + (noteLines ? 90 + noteLines * 28 : 0);
+  canvas.height = 340 + rows.length * 54 + (noteLines ? 90 + noteLines * 28 : 0);
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
   ctx.direction = "rtl";
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#2E7D5B";
-  ctx.fillRect(0, 0, canvas.width, 16);
+  ctx.fillStyle = "#1B4D32";
+  ctx.fillRect(0, 0, canvas.width, 230);
+  ctx.fillStyle = "#C9A34A";
+  ctx.fillRect(0, 230, canvas.width, 8);
+  if (logo) {
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath(); ctx.arc(845, 115, 75, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#C9A34A"; ctx.lineWidth = 4; ctx.stroke();
+    ctx.drawImage(logo, 780, 50, 130, 130);
+  }
   ctx.textAlign = "right";
-  ctx.fillStyle = "#1d2b24";
-  ctx.font = "700 38px Cairo, Tajawal, sans-serif";
-  ctx.fillText(FARM_NAME, 920, 78);
-  ctx.font = "700 24px Cairo, Tajawal, sans-serif";
-  ctx.fillText("فاتورة بيع ماشية", 920, 116);
-  ctx.font = "700 22px Tajawal, sans-serif";
-  ctx.fillText(`رقم الفاتورة: ${data.invoice_number}`, 920, 158);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "700 40px Cairo, Tajawal, sans-serif";
+  ctx.fillText(FARM_NAME, 745, 95);
+  ctx.fillStyle = "#C9A34A";
+  ctx.font = "700 28px Cairo, Tajawal, sans-serif";
+  ctx.fillText(FARM_NAME_AR, 745, 135);
+  ctx.fillStyle = "#dfe9e3";
   ctx.font = "400 20px Tajawal, sans-serif";
-  ctx.fillText(`التاريخ: ${fmtDate(data.sale_date)}`, 920, 190);
-  ctx.strokeStyle = "#2E7D5B";
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(80, 220);
-  ctx.lineTo(920, 220);
-  ctx.stroke();
+  ctx.fillText("فاتورة بيع ماشية", 745, 170);
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "700 22px Tajawal, sans-serif";
+  ctx.fillText(`رقم الفاتورة: ${data.invoice_number}`, 80, 105);
+  ctx.font = "400 20px Tajawal, sans-serif";
+  ctx.fillText(`التاريخ: ${fmtDate(data.sale_date)}`, 80, 140);
+  ctx.textAlign = "right";
 
-  let y = 260;
+  let y = 290;
   rows.forEach(([label, value], index) => {
     ctx.fillStyle = index % 2 === 0 ? "#f1f7f3" : "#ffffff";
     ctx.fillRect(80, y - 34, 840, 52);
     ctx.strokeStyle = "#d7e2db";
     ctx.lineWidth = 1;
     ctx.strokeRect(80, y - 34, 840, 52);
-    const strong = label === "الإجمالي النهائي" || label === "المبلغ المتبقي";
-    ctx.fillStyle = strong ? "#2E7D5B" : "#1d2b24";
+    const grand = label === "الإجمالي النهائي";
+    if (grand) { ctx.fillStyle = "#1B4D32"; ctx.fillRect(80, y - 34, 840, 52); }
+    const strong = grand || label === "المبلغ المتبقي";
+    ctx.fillStyle = grand ? "#ffffff" : strong ? "#1B4D32" : "#1d2b24";
     ctx.font = `${strong ? "700" : "400"} 21px Tajawal, sans-serif`;
     ctx.fillText(label, 880, y);
     ctx.textAlign = "left";
@@ -307,6 +340,18 @@ export function downloadInvoice(data: InvoiceData) {
     if (line) ctx.fillText(line, 920, y);
   }
 
+  // watermark (very subtle, drawn after table using low alpha)
+  ctx.save();
+  ctx.globalAlpha = 0.05;
+  const cy = 290 + (y - 290) / 2;
+  if (logo) ctx.drawImage(logo, 300, cy - 230, 400, 400);
+  ctx.fillStyle = "#1B4D32";
+  ctx.textAlign = "center";
+  ctx.font = "700 56px Cairo, Tajawal, sans-serif";
+  ctx.fillText(FARM_NAME_AR, 500, cy + 230);
+  ctx.restore();
+  ctx.textAlign = "right";
+
   ctx.font = "400 18px Tajawal, sans-serif";
   ctx.fillStyle = "#5c6b63";
   ctx.fillText("توقيع المستلم: ............................", 920, canvas.height - 46);
@@ -332,7 +377,7 @@ export function InvoiceActions({ data }: { data: InvoiceData }) {
       <Button type="button" className="flex-1" size="lg" onClick={() => printInvoice(data)}>
         <Printer /> طباعة الفاتورة
       </Button>
-      <Button type="button" variant="outline" size="lg" onClick={() => downloadInvoice(data)}>
+      <Button type="button" variant="outline" size="lg" onClick={() => void downloadInvoice(data)}>
         <ImageDown /> حفظ كصورة
       </Button>
     </div>
