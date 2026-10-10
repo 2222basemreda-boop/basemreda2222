@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Pencil, Plane, CalendarCheck, UserX, UserCheck } from "lucide-react";
+import { ArrowRight, Pencil, Plane, CalendarCheck, UserX, UserCheck, Banknote } from "lucide-react";
 import { employeeQuery, daysToNextLeave } from "@/lib/employees";
 import { fmtDate, fmtNum } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Loading, EmptyState, GlassCard, StatTile, SectionTitle } from "@/components/farm/ui";
-import { EmployeeDialog, LeaveSettlementDialog, EmployeeStatusDialog } from "@/components/farm/employee-forms";
+import { EmployeeDialog, LeaveSettlementDialog, EmployeeStatusDialog, CashLeaveDialog } from "@/components/farm/employee-forms";
 
 export const Route = createFileRoute("/_authenticated/employees/$id")({
   head: () => ({
@@ -36,10 +36,11 @@ function EmployeePage() {
   const [edit, setEdit] = useState(false);
   const [settle, setSettle] = useState(false);
   const [status, setStatus] = useState(false);
+  const [cash, setCash] = useState(false);
 
   if (isLoading) return <Loading />;
   if (!data) return <EmptyState title="الموظف غير موجود" action={<Button asChild variant="outline"><Link to="/employees">العودة للموظفين</Link></Button>} />;
-  const { employee: e, balance: b, attendance, ledger, periods } = data;
+  const { employee: e, balance: b, attendance, ledger, periods, leavePeriods } = data;
   const canWrite = auth.can("employees.write");
 
   return (
@@ -52,6 +53,7 @@ function EmployeePage() {
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => setEdit(true)}><Pencil /> تعديل</Button>
             <Button onClick={() => setSettle(true)}><Plane /> تسوية إجازة</Button>
+            <Button variant="outline" onClick={() => setCash(true)}><Banknote /> صرف نقدي بدل إجازة</Button>
             {e.is_active
               ? <Button variant="outline" onClick={() => setStatus(true)}><UserX /> إنهاء الخدمة</Button>
               : <Button variant="outline" onClick={() => setStatus(true)}><UserCheck /> إعادة تفعيل</Button>}
@@ -80,11 +82,35 @@ function EmployeePage() {
           <StatTile label="الإجازات المأخوذة (إجمالي)" value={`${fmtNum(b.prev_leave + b.prev_cash + b.app_leave + b.app_cash)} يوم`} tone="muted" />
           <StatTile label="إجازة مقدّمة (سالب)" value={`${fmtNum(Math.max(0, -b.remaining))} يوم`} tone="muted" />
           <StatTile label="الاستحقاق القادم (+4)" value={e.is_active ? fmtDate(nextAccrual(daysToNextLeave(b.worked_days))) : "متوقف"} hint={`بعد ${daysToNextLeave(b.worked_days)} يوم عمل (تقديري)`} />
+          <StatTile label="آخر خروج / عودة" value={leavePeriods[0] ? fmtDate(leavePeriods[0].departure_date) : "—"} hint={leavePeriods[0] ? (leavePeriods[0].return_date ? `عاد ${fmtDate(leavePeriods[0].return_date)}` : "لم يعد بعد") : undefined} />
           <StatTile label="الرصيد الحالي" value={<span dir="ltr">{fmtNum(b.remaining)} يوم</span>} tone="amber" />
         </div>
       </div>
 
       <div>
+        <SectionTitle>فترات الغياب والإجازات</SectionTitle>
+        {leavePeriods.length === 0 ? <EmptyState title="لا توجد فترات غياب" /> : (
+          <div className="glass mb-5 overflow-x-auto rounded-2xl">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead className="text-xs text-muted-foreground"><tr className="border-b border-border">
+                {["تاريخ الخروج", "آخر يوم غياب", "تاريخ العودة", "المدة", "إجازة معتمدة", "بدون أجر", "أخرى"].map((h) => <th key={h} className="p-3 text-start font-medium">{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {leavePeriods.map((p) => (
+                  <tr key={p.departure_date} className="border-b border-border/50 last:border-0">
+                    <td className="num p-3">{fmtDate(p.departure_date)}</td>
+                    <td className="num p-3">{fmtDate(p.last_absent_date)}</td>
+                    <td className="num p-3">{p.return_date ? fmtDate(p.return_date) : "لم يعد بعد"}</td>
+                    <td className="num p-3 font-bold">{fmtNum(p.absent_days)} يوم</td>
+                    <td className="num p-3">{fmtNum(p.leave_days)}</td>
+                    <td className="num p-3">{fmtNum(p.unpaid_days)}</td>
+                    <td className="num p-3">{fmtNum(p.other_days)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         <SectionTitle>سجل حركات الإجازات</SectionTitle>
         {ledger.length === 0 ? <EmptyState icon={<Plane />} title="لا توجد حركات بعد" /> : (
           <div className="glass overflow-x-auto rounded-2xl">
@@ -97,13 +123,13 @@ function EmployeePage() {
                   <tr key={i} className="border-b border-border/50 last:border-0">
                     <td className="num p-3">{fmtDate(s.entry_date)}</td>
                     <td className="p-3">{e.name}</td>
-                    <td className="p-3 font-bold">{s.kind === "accrual" ? "استحقاق 30 يوم" : s.kind === "previous" ? "إجازات سابقة" : "تسوية إجازة"}</td>
+                    <td className="p-3 font-bold">{({ accrual: "استحقاق 30 يوم", previous: "إجازات سابقة", leave_period: "فترة إجازة (حضور)", cash: "صرف نقدي", settlement: "تسوية إجازة" } as Record<string, string>)[s.kind] ?? s.kind}</td>
                     <td className="num p-3">{fmtNum(s.leave_days)}</td>
                     <td className="num p-3">{fmtNum(s.cash_days)}</td>
                     <td className="num p-3">{s.added ? `+${s.added}` : "—"}</td>
                     <td className="num p-3" dir="ltr">{fmtNum(s.prev_balance)}</td>
                     <td className="num p-3 font-bold" dir="ltr">{fmtNum(s.new_balance)}</td>
-                    <td className="p-3">{s.kind === "accrual" ? "تلقائي" : s.recorded_by_name || "—"}{s.notes && <p className="text-xs text-muted-foreground">{s.notes}</p>}</td>
+                    <td className="p-3">{s.kind === "accrual" || s.kind === "leave_period" ? "تلقائي" : s.recorded_by_name || "—"}{s.notes && <p className="text-xs text-muted-foreground">{s.notes}</p>}</td>
                   </tr>
                 ))}
               </tbody>
@@ -117,8 +143,8 @@ function EmployeePage() {
         {attendance.length === 0 ? <EmptyState title="لم يُسجَّل حضور بعد" /> : (
           <div className="flex flex-wrap gap-2">
             {attendance.map((a) => (
-              <span key={a.id} className={`num rounded-full px-3 py-1 text-xs font-bold ${a.present ? "bg-available/15 text-available" : "bg-destructive/10 text-destructive"}`}>
-                {fmtDate(a.work_date)} · {a.present ? "حاضر" : "غائب"}
+              <span key={a.id} className={`num rounded-full px-3 py-1 text-xs font-bold ${a.present ? "bg-available/15 text-available" : a.absence_type === "leave" ? "bg-amber/20" : "bg-destructive/10 text-destructive"}`}>
+                {fmtDate(a.work_date)} · {a.present ? "حاضر" : a.absence_type === "leave" ? "إجازة" : a.absence_type === "other" ? "غياب (أخرى)" : "غياب"}
               </span>
             ))}
           </div>
@@ -127,6 +153,7 @@ function EmployeePage() {
 
       <EmployeeDialog open={edit} onOpenChange={setEdit} initial={e} />
       <EmployeeStatusDialog open={status} onOpenChange={setStatus} employee={e} mode={e.is_active ? "leave" : "reactivate"} />
+      <CashLeaveDialog open={cash} onOpenChange={setCash} employee={e} remaining={b.remaining} />
       <LeaveSettlementDialog open={settle} onOpenChange={setSettle} employee={e} remaining={b.remaining} />
     </div>
   );
