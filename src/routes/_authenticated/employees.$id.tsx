@@ -82,7 +82,7 @@ function EmployeePage() {
           <StatTile label="الإجازات المأخوذة (إجمالي)" value={`${fmtNum(b.prev_leave + b.prev_cash + b.app_leave + b.app_cash)} يوم`} tone="muted" />
           <StatTile label="إجازة مقدّمة (سالب)" value={`${fmtNum(Math.max(0, -b.remaining))} يوم`} tone="muted" />
           <StatTile label="الاستحقاق القادم (+4)" value={e.is_active ? fmtDate(nextAccrual(daysToNextLeave(b.worked_days))) : "متوقف"} hint={`بعد ${daysToNextLeave(b.worked_days)} يوم عمل (تقديري)`} />
-          <StatTile label="آخر خروج / عودة" value={leavePeriods[0] ? fmtDate(leavePeriods[0].departure_date) : "—"} hint={leavePeriods[0] ? (leavePeriods[0].return_date ? `عاد ${fmtDate(leavePeriods[0].return_date)}` : "لم يعد بعد") : undefined} />
+          <StatTile label="آخر خروج / عودة" value={leavePeriods[0] ? fmtDate(leavePeriods[0].departure_date) : "—"} hint={leavePeriods[0] ? (leavePeriods[0].return_date ? `عاد ${fmtDate(leavePeriods[0].return_date)}` : "لم يعد بعد") : ""} />
           <StatTile label="الرصيد الحالي" value={<span dir="ltr">{fmtNum(b.remaining)} يوم</span>} tone="amber" />
         </div>
       </div>
