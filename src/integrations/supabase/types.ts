@@ -327,6 +327,7 @@ export type Database = {
       }
       employee_attendance: {
         Row: {
+          absence_type: string | null
           created_at: string
           employee_id: string
           id: string
@@ -336,6 +337,7 @@ export type Database = {
           work_date: string
         }
         Insert: {
+          absence_type?: string | null
           created_at?: string
           employee_id: string
           id?: string
@@ -345,6 +347,7 @@ export type Database = {
           work_date: string
         }
         Update: {
+          absence_type?: string | null
           created_at?: string
           employee_id?: string
           id?: string
@@ -403,6 +406,7 @@ export type Database = {
           attendance_start_date: string
           created_at: string
           created_by: string | null
+          daily_wage: number | null
           id: string
           is_active: boolean
           job_title: string | null
@@ -419,6 +423,7 @@ export type Database = {
           attendance_start_date?: string
           created_at?: string
           created_by?: string | null
+          daily_wage?: number | null
           id?: string
           is_active?: boolean
           job_title?: string | null
@@ -435,6 +440,7 @@ export type Database = {
           attendance_start_date?: string
           created_at?: string
           created_by?: string | null
+          daily_wage?: number | null
           id?: string
           is_active?: boolean
           job_title?: string | null
@@ -502,6 +508,7 @@ export type Database = {
       leave_settlements: {
         Row: {
           balance_after: number
+          cash_amount: number | null
           cash_days: number
           created_at: string
           employee_id: string
@@ -514,6 +521,7 @@ export type Database = {
         }
         Insert: {
           balance_after?: number
+          cash_amount?: number | null
           cash_days?: number
           created_at?: string
           employee_id: string
@@ -526,6 +534,7 @@ export type Database = {
         }
         Update: {
           balance_after?: number
+          cash_amount?: number | null
           cash_days?: number
           created_at?: string
           employee_id?: string
@@ -909,6 +918,18 @@ export type Database = {
           notes: string
           prev_balance: number
           recorded_by_name: string
+        }[]
+      }
+      employee_leave_periods: {
+        Args: { _employee_id: string }
+        Returns: {
+          absent_days: number
+          departure_date: string
+          last_absent_date: string
+          leave_days: number
+          other_days: number
+          return_date: string
+          unpaid_days: number
         }[]
       }
       employees_leave_summary: {
