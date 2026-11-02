@@ -113,6 +113,13 @@
       "when": 1791612873513,
       "tag": "0015_attendance_absence_types_and_cash",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793595537763,
+      "tag": "0016_loose_calves_batches",
+      "breakpoints": true
     }
   ]
 }

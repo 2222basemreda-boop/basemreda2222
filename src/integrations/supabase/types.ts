@@ -292,6 +292,125 @@ export type Database = {
         }
         Relationships: []
       }
+      batch_weighings: {
+        Row: {
+          batch_id: string
+          calf_count: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          total_weight: number
+          weighing_date: string
+        }
+        Insert: {
+          batch_id: string
+          calf_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          total_weight: number
+          weighing_date: string
+        }
+        Update: {
+          batch_id?: string
+          calf_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          total_weight?: number
+          weighing_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "batch_weighings_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "calf_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calf_batches: {
+        Row: {
+          barn_id: string | null
+          created_at: string
+          created_by: string | null
+          entry_date: string
+          expenses: number
+          id: string
+          notes: string | null
+          purchase_price_per_kg: number | null
+          purchase_weight: number | null
+          quantity: number
+          receive_weight: number
+          remaining_quantity: number
+          remaining_weight: number
+          supplier_id: string | null
+          supplier_name: string | null
+          supplier_paid: number
+          total_cost: number | null
+          updated_at: string
+        }
+        Insert: {
+          barn_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          entry_date?: string
+          expenses?: number
+          id?: string
+          notes?: string | null
+          purchase_price_per_kg?: number | null
+          purchase_weight?: number | null
+          quantity: number
+          receive_weight: number
+          remaining_quantity: number
+          remaining_weight: number
+          supplier_id?: string | null
+          supplier_name?: string | null
+          supplier_paid?: number
+          total_cost?: number | null
+          updated_at?: string
+        }
+        Update: {
+          barn_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          entry_date?: string
+          expenses?: number
+          id?: string
+          notes?: string | null
+          purchase_price_per_kg?: number | null
+          purchase_weight?: number | null
+          quantity?: number
+          receive_weight?: number
+          remaining_quantity?: number
+          remaining_weight?: number
+          supplier_id?: string | null
+          supplier_name?: string | null
+          supplier_paid?: number
+          total_cost?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calf_batches_barn_id_fkey"
+            columns: ["barn_id"]
+            isOneToOne: false
+            referencedRelation: "barns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calf_batches_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -581,7 +700,8 @@ export type Database = {
       }
       sales: {
         Row: {
-          animal_id: string
+          animal_id: string | null
+          batch_id: string | null
           cancel_reason: string | null
           cancelled_at: string | null
           cancelled_by: string | null
@@ -595,6 +715,7 @@ export type Database = {
           payment_method: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           price_per_kg: number
+          quantity: number
           sale_date: string
           slaughtering: number
           total_price: number | null
@@ -604,7 +725,8 @@ export type Database = {
           worker_tip: number
         }
         Insert: {
-          animal_id: string
+          animal_id?: string | null
+          batch_id?: string | null
           cancel_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
@@ -618,6 +740,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           price_per_kg: number
+          quantity?: number
           sale_date?: string
           slaughtering?: number
           total_price?: number | null
@@ -627,7 +750,8 @@ export type Database = {
           worker_tip?: number
         }
         Update: {
-          animal_id?: string
+          animal_id?: string | null
+          batch_id?: string | null
           cancel_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
@@ -641,6 +765,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           price_per_kg?: number
+          quantity?: number
           sale_date?: string
           slaughtering?: number
           total_price?: number | null
@@ -655,6 +780,13 @@ export type Database = {
             columns: ["animal_id"]
             isOneToOne: false
             referencedRelation: "animals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "calf_batches"
             referencedColumns: ["id"]
           },
           {
