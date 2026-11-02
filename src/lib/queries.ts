@@ -233,10 +233,9 @@ export function calfRemaining(a: Animal, payments: SupplierPayment[]) {
   return { paid, remaining: Number(a.supplier_cost ?? 0) - paid };
 }
 
-/** Remaining for a single batch: its cost minus paid-on-batch and payments explicitly linked to it. */
-export function batchRemaining(b: CalfBatch, payments: SupplierPayment[] = []) {
-  const linked = payments.filter((p) => p.batch_id === b.id).reduce((s, p) => s + Number(p.amount), 0);
-  const paid = Number(b.supplier_paid ?? 0) + linked;
+/** Remaining for a single batch: its cost minus what was paid for it at registration. */
+export function batchRemaining(b: CalfBatch) {
+  const paid = Number(b.supplier_paid ?? 0);
   return { paid, remaining: Number(b.total_cost ?? 0) - paid };
 }
 
