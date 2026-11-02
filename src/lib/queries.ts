@@ -92,7 +92,7 @@ export const salesQuery = queryOptions({
     throwIf(
       await supabase
         .from("sales")
-        .select("*, animal:animals(id,tag_number,color), customer:customers(id,name,code,phone,address)")
+        .select("*, animal:animals(id,tag_number,color), batch:calf_batches(id,supplier_name), customer:customers(id,name,code,phone,address)")
         .order("sale_date", { ascending: false })
         .order("created_at", { ascending: false }),
     ),
@@ -210,18 +210,20 @@ export type SupplierStats = {
   monthCount: number; monthValue: number; monthPaid: number; monthRemaining: number;
 };
 
-/** Totals for one supplier: calf value = supplier costs, paid = paid-on-calf + recorded payments. */
-export function supplierStats(supplierId: string, animals: Animal[], payments: SupplierPayment[], now = new Date()): SupplierStats {
+/** Totals for one supplier: calf value = supplier costs (tied calves + loose batches), paid = paid amounts + recorded payments. */
+export function supplierStats(supplierId: string, animals: Animal[], payments: SupplierPayment[], batches: CalfBatch[] = [], now = new Date()): SupplierStats {
   const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const mine = animals.filter((a) => a.supplier_id === supplierId);
+  const myBatches = batches.filter((b) => b.supplier_id === supplierId);
   const pays = payments.filter((p) => p.supplier_id === supplierId);
   const month = mine.filter((a) => a.entry_date.startsWith(ym));
+  const monthBatches = myBatches.filter((b) => b.entry_date.startsWith(ym));
   const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
-  const value = sum(mine.map((a) => Number(a.supplier_cost ?? 0)));
-  const paid = sum(mine.map((a) => Number(a.supplier_paid ?? 0))) + sum(pays.map((p) => Number(p.amount)));
-  const monthValue = sum(month.map((a) => Number(a.supplier_cost ?? 0)));
-  const monthPaid = sum(month.map((a) => Number(a.supplier_paid ?? 0))) + sum(pays.filter((p) => p.payment_date.startsWith(ym)).map((p) => Number(p.amount)));
-  return { count: mine.length, value, paid, remaining: value - paid, monthCount: month.length, monthValue, monthPaid, monthRemaining: monthValue - monthPaid };
+  const value = sum(mine.map((a) => Number(a.supplier_cost ?? 0))) + sum(myBatches.map((b) => Number(b.total_cost ?? 0)));
+  const paid = sum(mine.map((a) => Number(a.supplier_paid ?? 0))) + sum(myBatches.map((b) => Number(b.supplier_paid ?? 0))) + sum(pays.map((p) => Number(p.amount)));
+  const monthValue = sum(month.map((a) => Number(a.supplier_cost ?? 0))) + sum(monthBatches.map((b) => Number(b.total_cost ?? 0)));
+  const monthPaid = sum(month.map((a) => Number(a.supplier_paid ?? 0))) + sum(monthBatches.map((b) => Number(b.supplier_paid ?? 0))) + sum(pays.filter((p) => p.payment_date.startsWith(ym)).map((p) => Number(p.amount)));
+  return { count: mine.length + myBatches.length, value, paid, remaining: value - paid, monthCount: month.length + monthBatches.length, monthValue, monthPaid, monthRemaining: monthValue - monthPaid };
 }
 
 /** Remaining for a single calf: its cost minus paid-on-calf and payments explicitly linked to it. */
@@ -230,3 +232,43 @@ export function calfRemaining(a: Animal, payments: SupplierPayment[]) {
   const paid = Number(a.supplier_paid ?? 0) + linked;
   return { paid, remaining: Number(a.supplier_cost ?? 0) - paid };
 }
+
+/** Remaining for a single batch: its cost minus what was paid for it at registration. */
+export function batchRemaining(b: CalfBatch) {
+  const paid = Number(b.supplier_paid ?? 0);
+  return { paid, remaining: Number(b.total_cost ?? 0) - paid };
+}
+
+/** Cost still standing in the batch, proportional to the remaining weight. */
+export function batchRemainingCost(b: CalfBatch) {
+  if (b.total_cost == null || !Number(b.receive_weight)) return null;
+  return (Number(b.total_cost) * Number(b.remaining_weight)) / Number(b.receive_weight);
+}
+
+/* ---------- Loose-calves batches ---------- */
+
+export type CalfBatch = Tables<"calf_batches">;
+export type BatchWeighing = Tables<"batch_weighings">;
+export type CalfBatchRow = CalfBatch & { barn: BarnRef | null; supplier: Pick<Supplier, "id" | "name"> | null };
+
+const BATCH_SELECT = "*, barn:barns(id,name), supplier:suppliers(id,name)";
+
+export const batchesQuery = queryOptions({
+  queryKey: ["calf_batches"],
+  queryFn: async () => throwIf(await supabase.from("calf_batches").select(BATCH_SELECT).order("created_at", { ascending: false })) as CalfBatchRow[],
+});
+
+export const batchQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["calf_batches", id],
+    queryFn: async () => {
+      const [batch, weighings, sales] = await Promise.all([
+        supabase.from("calf_batches").select(BATCH_SELECT).eq("id", id).maybeSingle(),
+        supabase.from("batch_weighings").select("*").eq("batch_id", id).order("weighing_date", { ascending: false }).order("created_at", { ascending: false }),
+        supabase.from("sales").select("*, customer:customers(id,name,code)").eq("batch_id", id).order("sale_date", { ascending: false }).order("created_at", { ascending: false }),
+      ]);
+      const b = throwIf(batch) as CalfBatchRow | null;
+      if (!b) return null;
+      return { batch: b, weighings: throwIf(weighings), sales: sales.error ? [] : sales.data };
+    },
+  });
