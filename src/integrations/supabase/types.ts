@@ -1012,6 +1012,13 @@ export type Database = {
         Args: { _day: string; _employee_id: string }
         Returns: boolean
       }
+      employee_current_segment: {
+        Args: { _employee_id: string }
+        Returns: {
+          segment_days: number
+          segment_start: string
+        }[]
+      }
       employee_leave_balance: {
         Args: { _employee_id: string }
         Returns: {
