@@ -29,6 +29,10 @@ function useSave<TVars>(fn: (v: TVars) => Promise<void>, onDone: () => void, suc
 
 function friendly(msg: string) {
   if (/ANIMAL_NOT_AVAILABLE|ANIMAL_ALREADY_SOLD/.test(msg)) return "هذا العجل محجوز أو مباع بالفعل ولا يمكن بيعه مرة أخرى.";
+  if (/BATCH_INSUFFICIENT/.test(msg)) return "عدد العجول أو الوزن المطلوب أكبر من المتبقي في الدفعة.";
+  if (/BATCH_QUANTITY_INVALID/.test(msg)) return "أدخل عدد العجول المباعة.";
+  if (/BATCH_NOT_FOUND/.test(msg)) return "الدفعة غير موجودة";
+  if (/SALE_TARGET_REQUIRED/.test(msg)) return "اختر العجل أو الدفعة المطلوب بيعها";
   if (/ANIMAL_NOT_FOUND/.test(msg)) return "الحيوان غير موجود";
   if (/NOT_RESERVED/.test(msg)) return "هذا الحيوان غير محجوز حالياً";
   if (/SALE_ALREADY_CANCELLED/.test(msg)) return "تم إلغاء هذا البيع مسبقاً";
@@ -87,6 +91,29 @@ export function calfCosts(
   const total = base != null ? base + exp : legacyCost != null && price == null ? Number(legacyCost) : exp > 0 ? exp : null;
   const shrink = rw != null && fw != null ? rw - fw : null;
   return { base, total, shrink };
+}
+
+/** Batch cost rules: total = purchase price × receive weight + expenses, shrink per calf = (purchase − receive) ÷ count. */
+export function batchCosts(f: { quantity: string; purchase_weight: string; receive_weight: string; purchase_price_per_kg: string; expenses: string }) {
+  const qty = toNum(f.quantity), pw = toNum(f.purchase_weight), rw = toNum(f.receive_weight), price = toNum(f.purchase_price_per_kg), exp = toNum(f.expenses) ?? 0;
+  const base = price != null && rw != null ? price * rw : null;
+  const total = base != null ? base + exp : null;
+  const shrink = pw != null && rw != null ? pw - rw : null;
+  const shrinkPerCalf = shrink != null && qty ? shrink / qty : null;
+  return { base, total, shrink, shrinkPerCalf };
+}
+
+/** Finds an existing supplier by name (ignoring case/extra spaces) or creates it automatically. */
+async function findOrCreateSupplier(supName: string) {
+  const norm = supName.toLowerCase();
+  const { data: found, error: fe } = await supabase.from("suppliers").select("id,name");
+  if (fe) throw new Error(fe.message);
+  const hit = (found ?? []).find((x) => x.name.trim().replace(/\s+/g, " ").toLowerCase() === norm);
+  if (hit) return hit.id;
+  const { data: u0 } = await supabase.auth.getUser();
+  const { data: created, error: ce } = await supabase.from("suppliers").insert({ name: supName, created_by: u0.user?.id ?? null }).select("id").single();
+  if (ce) throw new Error(ce.message);
+  return created.id;
 }
 
 const animalSchema = z.object({
