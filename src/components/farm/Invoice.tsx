@@ -123,9 +123,19 @@ export function InvoiceView({ data }: { data: InvoiceData }) {
       </div>
 
       <div className="relative rounded-2xl border border-border/60 p-3">
-        <p className="mb-1 text-xs font-bold text-brand">بيانات العجل</p>
-        <Row label="رقم العجل" value={data.animal?.tag_number ?? "—"} />
-        <Row label="اللون" value={data.animal?.color ?? "—"} />
+        <p className="mb-1 text-xs font-bold text-brand">{data.batch ? "بيانات الدفعة" : "بيانات العجل"}</p>
+        {data.batch ? (
+          <>
+            <Row label="الصنف" value={data.batch.label} />
+            <Row label="عدد العجول" value={fmtNum(data.batch.quantity)} />
+            {data.batch.quantity > 1 && <Row label="متوسط وزن العجل" value={fmtWeight(data.weight / data.batch.quantity)} />}
+          </>
+        ) : (
+          <>
+            <Row label="رقم العجل" value={data.animal?.tag_number ?? "—"} />
+            <Row label="اللون" value={data.animal?.color ?? "—"} />
+          </>
+        )}
         <Row label="الوزن" value={fmtWeight(data.weight)} />
         <Row label="سعر الكيلو" value={fmtMoney(data.price_per_kg)} />
       </div>
@@ -200,10 +210,18 @@ th{background:rgba(241,247,243,.85);width:38%;font-weight:700}
     ["كود العميل", data.customer?.code ?? "—"],
     ["الهاتف", data.customer?.phone ?? "—"],
   ])}</table>
-<h2>بيانات العجل</h2>
+<h2>${esc(data.batch ? "بيانات الدفعة" : "بيانات العجل")}</h2>
 <table>${rows([
-    ["رقم العجل", data.animal?.tag_number ?? "—"],
-    ["اللون", data.animal?.color ?? "—"],
+    ...(data.batch
+      ? [
+          ["الصنف", data.batch.label],
+          ["عدد العجول", fmtNum(data.batch.quantity)],
+          ...(data.batch.quantity > 1 ? [["متوسط وزن العجل", fmtWeight(data.weight / data.batch.quantity)] as [string, string]] : []),
+        ]
+      : [
+          ["رقم العجل", data.animal?.tag_number ?? "—"],
+          ["اللون", data.animal?.color ?? "—"],
+        ]),
     ["الوزن", fmtWeight(data.weight)],
     ["سعر الكيلو", fmtMoney(data.price_per_kg)],
   ])}</table>
