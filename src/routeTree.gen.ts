@@ -25,6 +25,8 @@ import { Route as AuthenticatedAnimalsIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedAnimalsIdRouteImport } from './routes/_authenticated/animals.$id'
 import { Route as AuthenticatedBarnsIndexRouteImport } from './routes/_authenticated/barns.index'
 import { Route as AuthenticatedBarnsIdRouteImport } from './routes/_authenticated/barns.$id'
+import { Route as AuthenticatedBatchesIndexRouteImport } from './routes/_authenticated/batches.index'
+import { Route as AuthenticatedBatchesIdRouteImport } from './routes/_authenticated/batches.$id'
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
 import { Route as AuthenticatedEmployeesIndexRouteImport } from './routes/_authenticated/employees.index'
@@ -115,6 +117,17 @@ const AuthenticatedBarnsIdRoute = AuthenticatedBarnsIdRouteImport.update({
   path: '/barns/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBatchesIndexRoute =
+  AuthenticatedBatchesIndexRouteImport.update({
+    id: '/batches/',
+    path: '/batches/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBatchesIdRoute = AuthenticatedBatchesIdRouteImport.update({
+  id: '/batches/$id',
+  path: '/batches/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCustomersIndexRoute =
   AuthenticatedCustomersIndexRouteImport.update({
     id: '/customers/',
@@ -176,12 +189,14 @@ export interface FileRoutesByFullPath {
   '/weights': typeof AuthenticatedWeightsRoute
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
+  '/batches/$id': typeof AuthenticatedBatchesIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/employees/$id': typeof AuthenticatedEmployeesIdRoute
   '/sales/new': typeof AuthenticatedSalesNewRoute
   '/suppliers/$id': typeof AuthenticatedSuppliersIdRoute
   '/animals/': typeof AuthenticatedAnimalsIndexRoute
   '/barns/': typeof AuthenticatedBarnsIndexRoute
+  '/batches/': typeof AuthenticatedBatchesIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
   '/employees/': typeof AuthenticatedEmployeesIndexRoute
   '/sales/': typeof AuthenticatedSalesIndexRoute
@@ -201,12 +216,14 @@ export interface FileRoutesByTo {
   '/weights': typeof AuthenticatedWeightsRoute
   '/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/barns/$id': typeof AuthenticatedBarnsIdRoute
+  '/batches/$id': typeof AuthenticatedBatchesIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/employees/$id': typeof AuthenticatedEmployeesIdRoute
   '/sales/new': typeof AuthenticatedSalesNewRoute
   '/suppliers/$id': typeof AuthenticatedSuppliersIdRoute
   '/animals': typeof AuthenticatedAnimalsIndexRoute
   '/barns': typeof AuthenticatedBarnsIndexRoute
+  '/batches': typeof AuthenticatedBatchesIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
   '/employees': typeof AuthenticatedEmployeesIndexRoute
   '/sales': typeof AuthenticatedSalesIndexRoute
@@ -228,12 +245,14 @@ export interface FileRoutesById {
   '/_authenticated/weights': typeof AuthenticatedWeightsRoute
   '/_authenticated/animals/$id': typeof AuthenticatedAnimalsIdRoute
   '/_authenticated/barns/$id': typeof AuthenticatedBarnsIdRoute
+  '/_authenticated/batches/$id': typeof AuthenticatedBatchesIdRoute
   '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/_authenticated/employees/$id': typeof AuthenticatedEmployeesIdRoute
   '/_authenticated/sales/new': typeof AuthenticatedSalesNewRoute
   '/_authenticated/suppliers/$id': typeof AuthenticatedSuppliersIdRoute
   '/_authenticated/animals/': typeof AuthenticatedAnimalsIndexRoute
   '/_authenticated/barns/': typeof AuthenticatedBarnsIndexRoute
+  '/_authenticated/batches/': typeof AuthenticatedBatchesIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
   '/_authenticated/employees/': typeof AuthenticatedEmployeesIndexRoute
   '/_authenticated/sales/': typeof AuthenticatedSalesIndexRoute
@@ -255,12 +274,14 @@ export interface FileRouteTypes {
     | '/weights'
     | '/animals/$id'
     | '/barns/$id'
+    | '/batches/$id'
     | '/customers/$id'
     | '/employees/$id'
     | '/sales/new'
     | '/suppliers/$id'
     | '/animals/'
     | '/barns/'
+    | '/batches/'
     | '/customers/'
     | '/employees/'
     | '/sales/'
@@ -280,12 +301,14 @@ export interface FileRouteTypes {
     | '/weights'
     | '/animals/$id'
     | '/barns/$id'
+    | '/batches/$id'
     | '/customers/$id'
     | '/employees/$id'
     | '/sales/new'
     | '/suppliers/$id'
     | '/animals'
     | '/barns'
+    | '/batches'
     | '/customers'
     | '/employees'
     | '/sales'
@@ -306,12 +329,14 @@ export interface FileRouteTypes {
     | '/_authenticated/weights'
     | '/_authenticated/animals/$id'
     | '/_authenticated/barns/$id'
+    | '/_authenticated/batches/$id'
     | '/_authenticated/customers/$id'
     | '/_authenticated/employees/$id'
     | '/_authenticated/sales/new'
     | '/_authenticated/suppliers/$id'
     | '/_authenticated/animals/'
     | '/_authenticated/barns/'
+    | '/_authenticated/batches/'
     | '/_authenticated/customers/'
     | '/_authenticated/employees/'
     | '/_authenticated/sales/'
@@ -438,6 +463,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBarnsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/batches/': {
+      id: '/_authenticated/batches/'
+      path: '/batches'
+      fullPath: '/batches/'
+      preLoaderRoute: typeof AuthenticatedBatchesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/batches/$id': {
+      id: '/_authenticated/batches/$id'
+      path: '/batches/$id'
+      fullPath: '/batches/$id'
+      preLoaderRoute: typeof AuthenticatedBatchesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/customers/': {
       id: '/_authenticated/customers/'
       path: '/customers'
@@ -509,12 +548,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedWeightsRoute: typeof AuthenticatedWeightsRoute
   AuthenticatedAnimalsIdRoute: typeof AuthenticatedAnimalsIdRoute
   AuthenticatedBarnsIdRoute: typeof AuthenticatedBarnsIdRoute
+  AuthenticatedBatchesIdRoute: typeof AuthenticatedBatchesIdRoute
   AuthenticatedCustomersIdRoute: typeof AuthenticatedCustomersIdRoute
   AuthenticatedEmployeesIdRoute: typeof AuthenticatedEmployeesIdRoute
   AuthenticatedSalesNewRoute: typeof AuthenticatedSalesNewRoute
   AuthenticatedSuppliersIdRoute: typeof AuthenticatedSuppliersIdRoute
   AuthenticatedAnimalsIndexRoute: typeof AuthenticatedAnimalsIndexRoute
   AuthenticatedBarnsIndexRoute: typeof AuthenticatedBarnsIndexRoute
+  AuthenticatedBatchesIndexRoute: typeof AuthenticatedBatchesIndexRoute
   AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
   AuthenticatedEmployeesIndexRoute: typeof AuthenticatedEmployeesIndexRoute
   AuthenticatedSalesIndexRoute: typeof AuthenticatedSalesIndexRoute
@@ -533,12 +574,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedWeightsRoute: AuthenticatedWeightsRoute,
   AuthenticatedAnimalsIdRoute: AuthenticatedAnimalsIdRoute,
   AuthenticatedBarnsIdRoute: AuthenticatedBarnsIdRoute,
+  AuthenticatedBatchesIdRoute: AuthenticatedBatchesIdRoute,
   AuthenticatedCustomersIdRoute: AuthenticatedCustomersIdRoute,
   AuthenticatedEmployeesIdRoute: AuthenticatedEmployeesIdRoute,
   AuthenticatedSalesNewRoute: AuthenticatedSalesNewRoute,
   AuthenticatedSuppliersIdRoute: AuthenticatedSuppliersIdRoute,
   AuthenticatedAnimalsIndexRoute: AuthenticatedAnimalsIndexRoute,
   AuthenticatedBarnsIndexRoute: AuthenticatedBarnsIndexRoute,
+  AuthenticatedBatchesIndexRoute: AuthenticatedBatchesIndexRoute,
   AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
   AuthenticatedEmployeesIndexRoute: AuthenticatedEmployeesIndexRoute,
   AuthenticatedSalesIndexRoute: AuthenticatedSalesIndexRoute,
