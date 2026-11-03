@@ -382,6 +382,42 @@ export function AnimalDialog({ open, onOpenChange, initial, defaultBarnId, defau
   );
 }
 
+/* ---------- Batch weighing (loose calves) ---------- */
+
+const batchWeighingSchema = z.object({
+  weighing_date: z.string().min(1, "التاريخ مطلوب"),
+  total_weight: numField("الوزن", 0.1),
+  notes: optText(500),
+});
+
+export function BatchWeighingDialog({ open, onOpenChange, batchId }: DialogProps & { batchId: string }) {
+  const [f, setF] = useState({ weighing_date: today(), total_weight: "", notes: "" });
+  useEffect(() => { if (open) setF({ weighing_date: today(), total_weight: "", notes: "" }); }, [open]);
+  const save = useSave(async () => {
+    const parsed = batchWeighingSchema.safeParse(f);
+    const err = firstIssue(parsed);
+    if (err || !parsed.success) throw new Error(err ?? "");
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase.from("batch_weighings").insert({ batch_id: batchId, weighing_date: parsed.data.weighing_date, total_weight: parsed.data.total_weight, notes: parsed.data.notes, created_by: u.user?.id ?? null });
+    if (error) throw new Error(error.message);
+  }, () => onOpenChange(false), "تم تسجيل وزن الدفعة");
+  return (
+    <FormDialog open={open} onOpenChange={onOpenChange} title="تسجيل وزن إجمالي للدفعة" description="وزن إجمالي للعجول الحرة المتبقية، مع الحفاظ على سجل كل الأوزان السابقة." onSubmit={() => save.mutate(undefined)} submitting={save.isPending}>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="الوزن الإجمالي (كجم)" required>
+          <Input value={f.total_weight} onChange={(e) => setF({ ...f, total_weight: e.target.value })} type="number" inputMode="decimal" step="0.5" min={0} className="num text-xl" autoFocus />
+        </Field>
+        <Field label="تاريخ الوزن" required>
+          <Input value={f.weighing_date} onChange={(e) => setF({ ...f, weighing_date: e.target.value })} type="date" className="num" />
+        </Field>
+      </div>
+      <Field label="ملاحظات">
+        <Textarea value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} rows={2} />
+      </Field>
+    </FormDialog>
+  );
+}
+
 /* ---------- Weight ---------- */
 
 const weightSchema = z.object({
