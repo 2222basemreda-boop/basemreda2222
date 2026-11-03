@@ -15,6 +15,7 @@ export type InvoiceData = {
   payment_method: string | null;
   customer: { name: string; code: string | null; phone: string | null; address: string | null } | null;
   animal: { tag_number: string; color: string | null } | null;
+  batch: { label: string; quantity: number } | null;
   weight: number;
   price_per_kg: number;
   base_total: number;
@@ -35,12 +36,14 @@ type SaleLike = {
   weight: number | string;
   price_per_kg: number | string;
   total_price: number | string | null;
+  quantity?: number | string | null;
   worker_tip?: number | string | null;
   transportation?: number | string | null;
   slaughtering?: number | string | null;
   paid_amount: number | string | null;
   notes: string | null;
   animal?: { tag_number: string; color?: string | null } | null;
+  batch?: { supplier_name: string | null } | null;
   customer?: { name: string; code?: string | null; phone?: string | null; address?: string | null } | null;
 };
 
@@ -62,6 +65,12 @@ export function invoiceFromSale(s: SaleLike): InvoiceData {
       ? { name: s.customer.name, code: s.customer.code ?? null, phone: s.customer.phone ?? null, address: s.customer.address ?? null }
       : null,
     animal: s.animal ? { tag_number: s.animal.tag_number, color: s.animal.color ?? null } : null,
+    batch: s.batch
+      ? {
+          label: `عجول حرة${s.batch.supplier_name ? ` — ${s.batch.supplier_name}` : ""}`,
+          quantity: Number(s.quantity ?? 1),
+        }
+      : null,
     weight,
     price_per_kg: price,
     base_total: baseTotal,
