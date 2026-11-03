@@ -1,7 +1,7 @@
 import { Printer, ImageDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { fmtDate, fmtMoney, fmtWeight, invoiceTotal } from "@/lib/format";
+import { fmtDate, fmtMoney, fmtNum, fmtWeight, invoiceTotal } from "@/lib/format";
 import { PAYMENT_LABELS, type PaymentStatus } from "@/lib/labels";
 
 export const FARM_NAME = "Elemam Farm";
@@ -264,8 +264,16 @@ function canvasRows(data: InvoiceData): [string, string][] {
     ["اسم العميل", data.customer?.name ?? "—"],
     ["كود العميل", data.customer?.code ?? "—"],
     ["الهاتف", data.customer?.phone ?? "—"],
-    ["رقم العجل", data.animal?.tag_number ?? "—"],
-    ["اللون", data.animal?.color ?? "—"],
+    ...(data.batch
+      ? [
+          ["الصنف", data.batch.label],
+          ["عدد العجول", fmtNum(data.batch.quantity)],
+          ...(data.batch.quantity > 1 ? [["متوسط وزن العجل", fmtWeight(data.weight / data.batch.quantity)] as [string, string]] : []),
+        ]
+      : [
+          ["رقم العجل", data.animal?.tag_number ?? "—"],
+          ["اللون", data.animal?.color ?? "—"],
+        ]),
     ["الوزن", fmtWeight(data.weight)],
     ["سعر الكيلو", fmtMoney(data.price_per_kg)],
     ["الإجمالي", fmtMoney(data.base_total)],
