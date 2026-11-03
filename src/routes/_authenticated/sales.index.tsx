@@ -69,7 +69,9 @@ function SalesPage() {
             <GlassCard key={s.id} className="flex items-center gap-3">
               <div className="min-w-0 flex-1 text-sm">
                 <p className="font-bold">
-                  حيوان <Link to="/animals/$id" params={{ id: s.animal_id }} className="num text-brand">{s.animal?.tag_number}</Link>
+                  {s.batch_id && s.batch
+                    ? <>دفعة <Link to="/batches/$id" params={{ id: s.batch_id }} className="text-brand">{s.batch.supplier_name || "عجول حرة"}</Link> <span className="num text-xs text-muted-foreground">({fmtNum(s.quantity ?? 1)} رأس)</span></>
+                    : <>حيوان <Link to="/animals/$id" params={{ id: s.animal_id }} className="num text-brand">{s.animal?.tag_number}</Link></>}
                   {s.customer && <> ← <Link to="/customers/$id" params={{ id: s.customer.id }} className="text-brand">{s.customer.name}</Link></>}
                 </p>
                 <p className="num text-xs text-muted-foreground">{s.invoice_number ?? "—"}</p>
@@ -93,7 +95,7 @@ function SalesPage() {
                 </div>
               </div>
               <div className="flex flex-col gap-1">
-                {auth.can("sales.write") && <Button variant="ghost" size="icon" onClick={() => setEdit(s)} aria-label="تعديل"><Pencil /></Button>}
+                {auth.can("sales.write") && !s.batch_id && <Button variant="ghost" size="icon" onClick={() => setEdit(s)} aria-label="تعديل"><Pencil /></Button>}
                 {auth.can("sales.delete") && <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => setDelId(s.id)} aria-label="حذف"><Trash2 /></Button>}
               </div>
             </GlassCard>
@@ -106,7 +108,9 @@ function SalesPage() {
       <ConfirmDialog open={!!delId} onOpenChange={(o) => !o && setDelId(null)} title="حذف عملية البيع؟" description="لا يمكن التراجع عن الحذف." pending={del.isPending}
         onConfirm={async () => { if (delId) await del.mutateAsync({ table: "sales", id: delId }); setDelId(null); }} />
       <ConfirmDialog open={!!cancelId} onOpenChange={(o) => !o && setCancelId(null)} title="إلغاء البيع؟"
-        description="سيعود العجل إلى حالة «متاح» مع الحفاظ على جميع بياناته، وتبقى الفاتورة في السجل كعملية ملغاة."
+        description={data?.find((x) => x.id === cancelId)?.batch_id
+          ? "سيُعاد الوزن وعدد العجول إلى مخزون الدفعة، وتبقى الفاتورة في السجل كعملية ملغاة."
+          : "سيعود العجل إلى حالة «متاح» مع الحفاظ على جميع بياناته، وتبقى الفاتورة في السجل كعملية ملغاة."}
         pending={cancelSale.isPending}
         onConfirm={async () => { if (cancelId) await cancelSale.mutateAsync({ saleId: cancelId }); setCancelId(null); }} />
     </div>
