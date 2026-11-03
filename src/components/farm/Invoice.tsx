@@ -1,7 +1,7 @@
 import { Printer, ImageDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { fmtDate, fmtMoney, fmtWeight, invoiceTotal } from "@/lib/format";
+import { fmtDate, fmtMoney, fmtNum, fmtWeight, invoiceTotal } from "@/lib/format";
 import { PAYMENT_LABELS, type PaymentStatus } from "@/lib/labels";
 
 export const FARM_NAME = "Elemam Farm";
@@ -15,6 +15,7 @@ export type InvoiceData = {
   payment_method: string | null;
   customer: { name: string; code: string | null; phone: string | null; address: string | null } | null;
   animal: { tag_number: string; color: string | null } | null;
+  batch: { label: string; quantity: number } | null;
   weight: number;
   price_per_kg: number;
   base_total: number;
@@ -35,12 +36,14 @@ type SaleLike = {
   weight: number | string;
   price_per_kg: number | string;
   total_price: number | string | null;
+  quantity?: number | string | null;
   worker_tip?: number | string | null;
   transportation?: number | string | null;
   slaughtering?: number | string | null;
   paid_amount: number | string | null;
   notes: string | null;
   animal?: { tag_number: string; color?: string | null } | null;
+  batch?: { supplier_name: string | null } | null;
   customer?: { name: string; code?: string | null; phone?: string | null; address?: string | null } | null;
 };
 
@@ -62,6 +65,12 @@ export function invoiceFromSale(s: SaleLike): InvoiceData {
       ? { name: s.customer.name, code: s.customer.code ?? null, phone: s.customer.phone ?? null, address: s.customer.address ?? null }
       : null,
     animal: s.animal ? { tag_number: s.animal.tag_number, color: s.animal.color ?? null } : null,
+    batch: s.batch
+      ? {
+          label: `عجول حرة${s.batch.supplier_name ? ` — ${s.batch.supplier_name}` : ""}`,
+          quantity: Number(s.quantity ?? 1),
+        }
+      : null,
     weight,
     price_per_kg: price,
     base_total: baseTotal,
@@ -114,9 +123,19 @@ export function InvoiceView({ data }: { data: InvoiceData }) {
       </div>
 
       <div className="relative rounded-2xl border border-border/60 p-3">
-        <p className="mb-1 text-xs font-bold text-brand">بيانات العجل</p>
-        <Row label="رقم العجل" value={data.animal?.tag_number ?? "—"} />
-        <Row label="اللون" value={data.animal?.color ?? "—"} />
+        <p className="mb-1 text-xs font-bold text-brand">{data.batch ? "بيانات الدفعة" : "بيانات العجل"}</p>
+        {data.batch ? (
+          <>
+            <Row label="الصنف" value={data.batch.label} />
+            <Row label="عدد العجول" value={fmtNum(data.batch.quantity)} />
+            {data.batch.quantity > 1 && <Row label="متوسط وزن العجل" value={fmtWeight(data.weight / data.batch.quantity)} />}
+          </>
+        ) : (
+          <>
+            <Row label="رقم العجل" value={data.animal?.tag_number ?? "—"} />
+            <Row label="اللون" value={data.animal?.color ?? "—"} />
+          </>
+        )}
         <Row label="الوزن" value={fmtWeight(data.weight)} />
         <Row label="سعر الكيلو" value={fmtMoney(data.price_per_kg)} />
       </div>
@@ -191,10 +210,18 @@ th{background:rgba(241,247,243,.85);width:38%;font-weight:700}
     ["كود العميل", data.customer?.code ?? "—"],
     ["الهاتف", data.customer?.phone ?? "—"],
   ])}</table>
-<h2>بيانات العجل</h2>
+<h2>${esc(data.batch ? "بيانات الدفعة" : "بيانات العجل")}</h2>
 <table>${rows([
-    ["رقم العجل", data.animal?.tag_number ?? "—"],
-    ["اللون", data.animal?.color ?? "—"],
+    ...(data.batch
+      ? [
+          ["الصنف", data.batch.label],
+          ["عدد العجول", fmtNum(data.batch.quantity)],
+          ...(data.batch.quantity > 1 ? [["متوسط وزن العجل", fmtWeight(data.weight / data.batch.quantity)] as [string, string]] : []),
+        ]
+      : [
+          ["رقم العجل", data.animal?.tag_number ?? "—"],
+          ["اللون", data.animal?.color ?? "—"],
+        ]),
     ["الوزن", fmtWeight(data.weight)],
     ["سعر الكيلو", fmtMoney(data.price_per_kg)],
   ])}</table>
@@ -237,8 +264,16 @@ function canvasRows(data: InvoiceData): [string, string][] {
     ["اسم العميل", data.customer?.name ?? "—"],
     ["كود العميل", data.customer?.code ?? "—"],
     ["الهاتف", data.customer?.phone ?? "—"],
-    ["رقم العجل", data.animal?.tag_number ?? "—"],
-    ["اللون", data.animal?.color ?? "—"],
+    ...(data.batch
+      ? [
+          ["الصنف", data.batch.label],
+          ["عدد العجول", fmtNum(data.batch.quantity)],
+          ...(data.batch.quantity > 1 ? [["متوسط وزن العجل", fmtWeight(data.weight / data.batch.quantity)] as [string, string]] : []),
+        ]
+      : [
+          ["رقم العجل", data.animal?.tag_number ?? "—"],
+          ["اللون", data.animal?.color ?? "—"],
+        ]),
     ["الوزن", fmtWeight(data.weight)],
     ["سعر الكيلو", fmtMoney(data.price_per_kg)],
     ["الإجمالي", fmtMoney(data.base_total)],
