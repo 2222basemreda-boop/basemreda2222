@@ -4,8 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowRight, CalendarCheck, Loader2, Save, UserPlus, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { animalsQuery, customersQuery } from "@/lib/queries";
-import { fmtMoney, invoiceTotal, today, toNum } from "@/lib/format";
+import { animalsQuery, batchesQuery, customersQuery } from "@/lib/queries";
+import { fmtMoney, fmtNum, fmtWeight, invoiceTotal, today, toNum } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,9 @@ import { SearchSelect } from "@/components/farm/SearchSelect";
 import { InvoiceActions, InvoiceView, invoiceFromSale, type InvoiceData } from "@/components/farm/Invoice";
 
 export const Route = createFileRoute("/_authenticated/sales/new")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    batch: typeof search.batch === "string" && search.batch ? search.batch : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "بيع أو حجز — Elemam Farm" },
@@ -30,15 +33,19 @@ export const Route = createFileRoute("/_authenticated/sales/new")({
 
 const PAYMENT_METHODS = ["نقدي", "تحويل بنكي", "محفظة إلكترونية", "شيك", "آجل"];
 const BUSY_MSG = "هذا العجل محجوز أو مباع بالفعل ولا يمكن بيعه مرة أخرى.";
+const BATCH_MSG = "عدد العجول أو الوزن المطلوب أكبر من المتبقي في الدفعة.";
 
 function NewSalePage() {
   const auth = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const search = Route.useSearch();
   const { data: animals } = useQuery(animalsQuery);
   const { data: customers } = useQuery(customersQuery);
+  const { data: batches } = useQuery(batchesQuery);
 
   const [flow, setFlow] = useState<"sale" | "reservation">("sale");
+  const [source, setSource] = useState<"animal" | "batch">(search.batch ? "batch" : "animal");
   const [mode, setMode] = useState<"existing" | "new">("new");
   const [f, setF] = useState({
     customer_id: null as string | null,
@@ -47,6 +54,8 @@ function NewSalePage() {
     address: "",
     code: "",
     animal_id: null as string | null,
+    batch_id: (search.batch ?? null) as string | null,
+    quantity: "",
     weight: "",
     price_per_kg: "",
     worker_tip: "",
@@ -60,6 +69,8 @@ function NewSalePage() {
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const up = <K extends keyof typeof f>(k: K) => (v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }));
 
+  const kind = flow === "reservation" ? "animal" : source;
+
   const animalOptions = useMemo(
     () =>
       (animals ?? [])
@@ -67,17 +78,32 @@ function NewSalePage() {
         .map((a) => ({ value: a.id, label: a.tag_number, sub: `${a.color ?? ""} ${a.barn?.name ? "· " + a.barn.name : ""}`.trim(), keywords: a.color ?? "" })),
     [animals],
   );
+  const batchOptions = useMemo(
+    () =>
+      (batches ?? [])
+        .filter((b) => b.remaining_quantity > 0 && b.remaining_weight > 0)
+        .map((b) => ({
+          value: b.id,
+          label: b.supplier_name || "دفعة عجول حرة",
+          sub: `${b.remaining_quantity} رأس · ${fmtNum(b.remaining_weight)} كجم${b.barn?.name ? " · " + b.barn.name : ""}`,
+          keywords: b.barn?.name ?? "",
+        })),
+    [batches],
+  );
   const customerOptions = useMemo(
     () => (customers ?? []).map((c) => ({ value: c.id, label: c.name, sub: c.code, keywords: `${c.phone ?? ""} ${c.address ?? ""}` })),
     [customers],
   );
   const animal = (animals ?? []).find((a) => a.id === f.animal_id) ?? null;
+  const batch = (batches ?? []).find((b) => b.id === f.batch_id) ?? null;
 
   const baseTotal = (toNum(f.weight) ?? 0) * (toNum(f.price_per_kg) ?? 0);
   const total = invoiceTotal(baseTotal, f.worker_tip, f.transportation, f.slaughtering);
   const paid = Math.min(toNum(f.paid_amount) ?? 0, total || Number.POSITIVE_INFINITY);
   const remaining = Math.max(total - paid, 0);
   const paymentStatus = total > 0 && paid >= total ? "paid" : paid > 0 ? "partial" : "unpaid";
+  const soldQty = kind === "batch" ? toNum(f.quantity) ?? 0 : 1;
+  const avgWeight = soldQty > 0 ? (toNum(f.weight) ?? 0) / soldQty : null;
 
   const pickAnimal = (id: string | null) => {
     const a = (animals ?? []).find((x) => x.id === id);
@@ -86,6 +112,14 @@ function NewSalePage() {
       return;
     }
     setF((s) => ({ ...s, animal_id: id, weight: a?.current_weight ? String(a.current_weight) : s.weight }));
+  };
+  const pickBatch = (id: string | null) => {
+    const b = (batches ?? []).find((x) => x.id === id);
+    if (b && (b.remaining_quantity <= 0 || b.remaining_weight <= 0)) {
+      toast.error(BATCH_MSG);
+      return;
+    }
+    setF((s) => ({ ...s, batch_id: id, quantity: "", weight: "" }));
   };
 
   const nextCode = () => {
@@ -96,12 +130,26 @@ function NewSalePage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!f.animal_id) throw new Error(flow === "sale" ? "اختر العجل المطلوب بيعه" : "اختر العجل المطلوب حجزه");
-      const picked = (animals ?? []).find((a) => a.id === f.animal_id);
-      if (picked && picked.status !== "available") throw new Error(BUSY_MSG);
-      if ((toNum(f.weight) ?? 0) <= 0) throw new Error("أدخل وزن العجل");
-      if ((toNum(f.price_per_kg) ?? 0) <= 0) throw new Error("أدخل سعر الكيلو");
-      if (!f.sale_date) throw new Error(flow === "sale" ? "أدخل تاريخ البيع" : "أدخل تاريخ الحجز");
+      if (kind === "batch") {
+        const picked = (batches ?? []).find((b) => b.id === f.batch_id);
+        if (!f.batch_id || !picked) throw new Error("اختر الدفعة المطلوب البيع منها");
+        const qty = toNum(f.quantity);
+        const weight = toNum(f.weight);
+        const pricePerKg = toNum(f.price_per_kg);
+        if (qty == null || qty < 1 || !Number.isInteger(qty)) throw new Error("أدخل عدد العجول المباعة كرقم صحيح");
+        if (qty > Number(picked.remaining_quantity)) throw new Error(BATCH_MSG);
+        if (weight == null || weight <= 0) throw new Error("أدخل الوزن الإجمالي للعجول المباعة");
+        if (weight > Number(picked.remaining_weight)) throw new Error(BATCH_MSG);
+        if (pricePerKg == null || pricePerKg <= 0) throw new Error("أدخل سعر الكيلو");
+        if (!f.sale_date) throw new Error("أدخل تاريخ البيع");
+      } else {
+        if (!f.animal_id) throw new Error(flow === "sale" ? "اختر العجل المطلوب بيعه" : "اختر العجل المطلوب حجزه");
+        const picked = (animals ?? []).find((a) => a.id === f.animal_id);
+        if (picked && picked.status !== "available") throw new Error(BUSY_MSG);
+        if ((toNum(f.weight) ?? 0) <= 0) throw new Error("أدخل وزن العجل");
+        if ((toNum(f.price_per_kg) ?? 0) <= 0) throw new Error("أدخل سعر الكيلو");
+        if (!f.sale_date) throw new Error(flow === "sale" ? "أدخل تاريخ البيع" : "أدخل تاريخ الحجز");
+      }
 
       let customerId = f.customer_id;
       if (mode === "new") {
@@ -145,26 +193,35 @@ function NewSalePage() {
 
       const weight = toNum(f.weight);
       const pricePerKg = toNum(f.price_per_kg);
-      if (weight === null || pricePerKg === null) throw new Error("أدخل وزن العجل وسعر الكيلو");
+      if (weight === null || pricePerKg === null) throw new Error("أدخل الوزن وسعر الكيلو");
       const { data: u } = await supabase.auth.getUser();
+      const base = {
+        customer_id: customerId,
+        weight,
+        price_per_kg: pricePerKg,
+        worker_tip: toNum(f.worker_tip) ?? 0,
+        transportation: toNum(f.transportation) ?? 0,
+        slaughtering: toNum(f.slaughtering) ?? 0,
+        sale_date: f.sale_date,
+        payment_status: paymentStatus,
+        paid_amount: paid,
+        payment_method: f.payment_method,
+        notes: f.notes.trim() || null,
+        created_by: u.user?.id ?? null,
+      };
+      if (kind === "batch") {
+        const { data: sale, error } = await supabase
+          .from("sales")
+          .insert({ ...base, batch_id: f.batch_id, quantity: toNum(f.quantity) ?? 1 })
+          .select("*, animal:animals(tag_number,color), batch:calf_batches(id,supplier_name), customer:customers(name,code,phone,address)")
+          .single();
+        if (error) throw new Error(error.message);
+        return sale;
+      }
       const { data: sale, error } = await supabase
         .from("sales")
-        .insert({
-          animal_id: f.animal_id,
-          customer_id: customerId,
-          weight,
-          price_per_kg: pricePerKg,
-          worker_tip: toNum(f.worker_tip) ?? 0,
-          transportation: toNum(f.transportation) ?? 0,
-          slaughtering: toNum(f.slaughtering) ?? 0,
-          sale_date: f.sale_date,
-          payment_status: paymentStatus,
-          paid_amount: paid,
-          payment_method: f.payment_method,
-          notes: f.notes.trim() || null,
-          created_by: u.user?.id ?? null,
-        })
-        .select("*, animal:animals(tag_number,color), customer:customers(name,code,phone,address)")
+        .insert({ ...base, animal_id: f.animal_id, quantity: 1 })
+        .select("*, animal:animals(tag_number,color), batch:calf_batches(id,supplier_name), customer:customers(name,code,phone,address)")
         .single();
       if (error) throw new Error(error.message);
       return sale;
@@ -182,11 +239,11 @@ function NewSalePage() {
     onError: (e: Error) => {
       const m = e.message;
       if (/ANIMAL_NOT_AVAILABLE|ANIMAL_ALREADY_SOLD/.test(m)) toast.error(BUSY_MSG);
+      else if (/BATCH_INSUFFICIENT/.test(m)) toast.error(BATCH_MSG);
       else if (/duplicate key/.test(m) && /code/.test(m)) toast.error("كود العميل مستخدم من قبل");
       else if (/row-level security/.test(m)) toast.error("ليس لديك صلاحية تسجيل المبيعات");
       else toast.error(m);
     },
-
   });
 
   if (!auth.can("sales.write")) return <EmptyState title="ليس لديك صلاحية تسجيل المبيعات" />;
@@ -200,7 +257,7 @@ function NewSalePage() {
           <div className="mt-4 space-y-2">
             <InvoiceActions data={invoice} />
             <div className="flex gap-2">
-              <Button variant="secondary" size="lg" className="flex-1" onClick={() => { setInvoice(null); setF((s) => ({ ...s, animal_id: null, weight: "", price_per_kg: "", worker_tip: "", transportation: "", slaughtering: "", paid_amount: "", notes: "", customer_id: null, name: "", phone: "", address: "", code: "" })); }}>
+              <Button variant="secondary" size="lg" className="flex-1" onClick={() => { setInvoice(null); setF((s) => ({ ...s, animal_id: null, batch_id: null, quantity: "", weight: "", price_per_kg: "", worker_tip: "", transportation: "", slaughtering: "", paid_amount: "", notes: "", customer_id: null, name: "", phone: "", address: "", code: "" })); }}>
                 بيع جديد
               </Button>
               <Button variant="outline" size="lg" className="flex-1" onClick={() => navigate({ to: "/sales" })}>
@@ -233,6 +290,16 @@ function NewSalePage() {
               <CalendarCheck /> حجز
             </Button>
           </div>
+          {flow === "sale" && (
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant={kind === "animal" ? "secondary" : "outline"} size="lg" onClick={() => setSource("animal")}>
+                عجل مربوط
+              </Button>
+              <Button type="button" variant={kind === "batch" ? "secondary" : "outline"} size="lg" onClick={() => setSource("batch")}>
+                عجول حرة (دفعة)
+              </Button>
+            </div>
+          )}
         </GlassCard>
 
         <GlassCard className="space-y-3">
@@ -270,32 +337,70 @@ function NewSalePage() {
         </GlassCard>
 
         <GlassCard className="space-y-3">
-          <SectionTitle className="mt-0">بيانات العجل</SectionTitle>
-          <Field label="اختر العجل (المتاح فقط)" required>
-            <SearchSelect options={animalOptions} value={f.animal_id} onChange={pickAnimal} placeholder="ابحث برقم العجل" emptyText="لا توجد عجول متاحة" />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="رقم العجل">
-              <Input value={animal?.tag_number ?? ""} readOnly className="num" placeholder="—" />
-            </Field>
-            <Field label="اللون">
-              <Input value={animal?.color ?? ""} readOnly placeholder="—" />
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="الوزن (كجم)" required>
-              <Input value={f.weight} onChange={(e) => up("weight")(e.target.value)} type="number" inputMode="decimal" step="0.5" min={0} className="num" />
-            </Field>
-            <Field label="سعر الكيلو (ج.م)" required>
-              <Input value={f.price_per_kg} onChange={(e) => up("price_per_kg")(e.target.value)} type="number" inputMode="decimal" step="0.5" min={0} className="num" />
-            </Field>
-          </div>
+          <SectionTitle className="mt-0">{kind === "batch" ? "بيانات الدفعة" : "بيانات العجل"}</SectionTitle>
+          {kind === "batch" ? (
+            <>
+              <Field label="اختر الدفعة (العجول الحرة)" required>
+                <SearchSelect options={batchOptions} value={f.batch_id} onChange={pickBatch} placeholder="ابحث بالمورد أو الحظيرة" emptyText="لا توجد دفعات متاحة" />
+              </Field>
+              {batch && (
+                <div className="grid grid-cols-2 gap-2 rounded-2xl bg-brand/10 p-3 text-sm">
+                  <div><p className="text-xs text-muted-foreground">عدد العجول المتاح</p><p className="num text-lg font-bold">{batch.remaining_quantity} رأس</p></div>
+                  <div><p className="text-xs text-muted-foreground">الوزن المتبقي بالدفعة</p><p className="num text-lg font-bold">{fmtWeight(batch.remaining_weight)}</p></div>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="عدد العجول المباعة" required>
+                  <Input value={f.quantity} onChange={(e) => up("quantity")(e.target.value)} type="number" inputMode="numeric" min={1} step="1" className="num" />
+                </Field>
+                <Field label="الوزن الإجمالي المباع (كجم)" required>
+                  <Input value={f.weight} onChange={(e) => up("weight")(e.target.value)} type="number" inputMode="decimal" step="0.5" min={0} className="num" />
+                </Field>
+              </div>
+              {soldQty > 0 && avgWeight != null && avgWeight > 0 && (
+                <div className="glass flex items-center justify-between rounded-2xl px-4 py-3">
+                  <span className="text-sm text-muted-foreground">متوسط وزن العجل المباع</span>
+                  <span className="num text-xl text-brand">{fmtWeight(avgWeight)}</span>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="سعر الكيلو (ج.م)" required>
+                  <Input value={f.price_per_kg} onChange={(e) => up("price_per_kg")(e.target.value)} type="number" inputMode="decimal" step="0.5" min={0} className="num" />
+                </Field>
+                <Field label="الحظيرة">
+                  <Input value={batch?.barn?.name ?? ""} readOnly placeholder="—" />
+                </Field>
+              </div>
+            </>
+          ) : (
+            <>
+              <Field label="اختر العجل (المتاح فقط)" required>
+                <SearchSelect options={animalOptions} value={f.animal_id} onChange={pickAnimal} placeholder="ابحث برقم العجل" emptyText="لا توجد عجول متاحة" />
+              </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="رقم العجل">
+                  <Input value={animal?.tag_number ?? ""} readOnly className="num" placeholder="—" />
+                </Field>
+                <Field label="اللون">
+                  <Input value={animal?.color ?? ""} readOnly placeholder="—" />
+                </Field>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="الوزن (كجم)" required>
+                  <Input value={f.weight} onChange={(e) => up("weight")(e.target.value)} type="number" inputMode="decimal" step="0.5" min={0} className="num" />
+                </Field>
+                <Field label="سعر الكيلو (ج.م)" required>
+                  <Input value={f.price_per_kg} onChange={(e) => up("price_per_kg")(e.target.value)} type="number" inputMode="decimal" step="0.5" min={0} className="num" />
+                </Field>
+              </div>
+            </>
+          )}
         </GlassCard>
 
         <GlassCard className="space-y-3">
           <SectionTitle className="mt-0">{flow === "sale" ? "الدفع" : "بيانات الحجز والدفع"}</SectionTitle>
           <div className="glass flex items-center justify-between rounded-2xl px-4 py-3">
-            <span className="text-sm text-muted-foreground">إجمالي الوزن والسعر</span>
+            <span className="text-sm text-muted-foreground">الإجمالي</span>
             <span className="num text-xl text-brand">{fmtMoney(baseTotal)}</span>
           </div>
           <div className="grid grid-cols-3 gap-3">
