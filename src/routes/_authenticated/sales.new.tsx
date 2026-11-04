@@ -16,7 +16,7 @@ import { InvoiceActions, InvoiceView, invoiceFromSale, type InvoiceData } from "
 
 export const Route = createFileRoute("/_authenticated/sales/new")({
   validateSearch: (search: Record<string, unknown>) => ({
-    batch: typeof search.batch === "string" && search.batch ? search.batch : undefined,
+    batch: typeof search["batch"] === "string" && search["batch"] ? search["batch"] : undefined,
   }),
   head: () => ({
     meta: [
@@ -144,7 +144,8 @@ function NewSalePage() {
         if (!f.sale_date) throw new Error("أدخل تاريخ البيع");
       } else {
         if (!f.animal_id) throw new Error(flow === "sale" ? "اختر العجل المطلوب بيعه" : "اختر العجل المطلوب حجزه");
-        const picked = (animals ?? []).find((a) => a.id === f.animal_id);
+        const animalId: string = f.animal_id;
+        const picked = (animals ?? []).find((a) => a.id === animalId);
         if (picked && picked.status !== "available") throw new Error(BUSY_MSG);
         if ((toNum(f.weight) ?? 0) <= 0) throw new Error("أدخل وزن العجل");
         if ((toNum(f.price_per_kg) ?? 0) <= 0) throw new Error("أدخل سعر الكيلو");
@@ -175,7 +176,7 @@ function NewSalePage() {
         const pricePerKg = toNum(f.price_per_kg);
         if (weight === null || pricePerKg === null) throw new Error("أدخل وزن العجل وسعر الكيلو");
         const { error: reserveError } = await supabase.rpc("reserve_animal_details", {
-          _animal_id: f.animal_id,
+          _animal_id: animalId,
           _customer_id: customerId,
           _weight: weight,
           _price_per_kg: pricePerKg,
@@ -220,7 +221,7 @@ function NewSalePage() {
       }
       const { data: sale, error } = await supabase
         .from("sales")
-        .insert({ ...base, animal_id: f.animal_id, quantity: 1 })
+        .insert({ ...base, animal_id: animalId, quantity: 1 })
         .select("*, animal:animals(tag_number,color), batch:calf_batches(id,supplier_name), customer:customers(name,code,phone,address)")
         .single();
       if (error) throw new Error(error.message);

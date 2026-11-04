@@ -52,7 +52,7 @@ function BatchesPage() {
         <EmptyState
           icon={<Boxes />}
           title={data?.length ? "لا توجد نتائج مطابقة" : "لا توجد دفعات بعد"}
-          hint={data?.length ? undefined : "سجّل دفعة عجول حرة لتبع مخزونها وأوزانها وبيعها بالجملة."}
+          {...(!data?.length ? { hint: "سجّل دفعة عجول حرة لتبع مخزونها وأوزانها وبيعها بالجملة." } : {})}
           action={!data?.length && auth.can("animals.write") ? <Button onClick={() => setOpen(true)}><Plus /> إضافة دفعة</Button> : undefined}
         />
       ) : (

@@ -65,9 +65,9 @@ function BatchPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatTile label="العجول المتبقية" value={`${fmtNum(b.remaining_quantity)} رأس`} hint={`من ${fmtNum(b.quantity)} رأس`} tone={depleted ? "muted" : undefined} />
-        <StatTile label="الوزن المتبقي" value={fmtWeight(b.remaining_weight)} hint={`من ${fmtWeight(b.receive_weight)}`} tone={depleted ? "muted" : undefined} />
-        <StatTile label="إجمالي الخسية" value={shrink != null ? fmtWeight(shrink) : "—"} hint={shrinkPerCalf != null ? `خسية العجل الواحد ${shrinkPerCalf.toFixed(2)} كجم` : undefined} />
+        <StatTile label="العجول المتبقية" value={`${fmtNum(b.remaining_quantity)} رأس`} hint={`من ${fmtNum(b.quantity)} رأس`} {...(depleted ? { tone: "muted" as const } : {})} />
+        <StatTile label="الوزن المتبقي" value={fmtWeight(b.remaining_weight)} hint={`من ${fmtWeight(b.receive_weight)}`} {...(depleted ? { tone: "muted" as const } : {})} />
+        <StatTile label="إجمالي الخسية" value={shrink != null ? fmtWeight(shrink) : "—"} {...(shrinkPerCalf != null ? { hint: `خسية العجل الواحد ${shrinkPerCalf.toFixed(2)} كجم` } : {})} />
         <StatTile label="سعر الشراء" value={fmtMoney(b.purchase_price_per_kg)} hint="ج.م / كجم" />
         <StatTile label="وزن الشراء" value={fmtWeight(b.purchase_weight)} tone="muted" />
         <StatTile label="تكلفة الدفعة" value={fmtMoney(b.total_cost)} tone="muted" hint="سعر الشراء × وزن الاستلام + المصروفات" />

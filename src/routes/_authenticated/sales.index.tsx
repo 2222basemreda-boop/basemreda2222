@@ -49,7 +49,7 @@ function SalesPage() {
       <PageHeader
         title="المبيعات"
         subtitle={`${fmtNum(data?.length ?? 0)} عملية بيع`}
-        action={auth.can("sales.write") && <Button asChild><Link to="/sales/new"><Plus /> بيع / حجز</Link></Button>}
+        action={auth.can("sales.write") && <Button asChild><Link to="/sales/new" search={{}}><Plus /> بيع / حجز</Link></Button>}
       />
       <div className="mb-4 grid grid-cols-2 gap-2">
         <StatTile label="إجمالي المبيعات" value={fmtMoney(total)} />
@@ -59,7 +59,7 @@ function SalesPage() {
         <EmptyState
           icon={<Receipt />}
           title="لا توجد مبيعات بعد"
-          action={auth.can("sales.write") ? <Button asChild><Link to="/sales/new"><CalendarCheck /> بيع / حجز</Link></Button> : undefined}
+          action={auth.can("sales.write") ? <Button asChild><Link to="/sales/new" search={{}}><CalendarCheck /> بيع / حجز</Link></Button> : undefined}
         />
       ) : (
         <div className="space-y-2">
@@ -71,7 +71,7 @@ function SalesPage() {
                 <p className="font-bold">
                   {s.batch_id && s.batch
                     ? <>دفعة <Link to="/batches/$id" params={{ id: s.batch_id }} className="text-brand">{s.batch.supplier_name || "عجول حرة"}</Link> <span className="num text-xs text-muted-foreground">({fmtNum(s.quantity ?? 1)} رأس)</span></>
-                    : <>حيوان <Link to="/animals/$id" params={{ id: s.animal_id }} className="num text-brand">{s.animal?.tag_number}</Link></>}
+                    : <>حيوان <Link to="/animals/$id" params={{ id: s.animal_id ?? "" }} className="num text-brand">{s.animal?.tag_number}</Link></>}
                   {s.customer && <> ← <Link to="/customers/$id" params={{ id: s.customer.id }} className="text-brand">{s.customer.name}</Link></>}
                 </p>
                 <p className="num text-xs text-muted-foreground">{s.invoice_number ?? "—"}</p>

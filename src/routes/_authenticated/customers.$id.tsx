@@ -79,7 +79,7 @@ function CustomerDetail() {
               {sales.map((s) => (
                 <div key={s.id} className="flex items-center gap-3 px-4 py-3 text-sm">
                   <div className="flex-1">
-                    <p className="font-bold">حيوان <Link to="/animals/$id" params={{ id: s.animal_id }} className="num text-brand">{s.animal?.tag_number}</Link> · {fmtWeight(s.weight)}</p>
+                    <p className="font-bold">حيوان <Link to="/animals/$id" params={{ id: s.animal_id ?? "" }} className="num text-brand">{s.animal?.tag_number}</Link> · {fmtWeight(s.weight)}</p>
                     <p className="text-xs text-muted-foreground">{fmtDate(s.sale_date)} · {fmtMoney(s.price_per_kg)}/كجم</p>
                   </div>
                   <div className="text-left">
