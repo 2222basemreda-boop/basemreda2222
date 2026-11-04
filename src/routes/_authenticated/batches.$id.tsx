@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Boxes, Scale, ShoppingCart, FileText, Ban } from "lucide-react";
+import { ArrowRight, Scale, ShoppingCart, FileText, Ban } from "lucide-react";
 import { batchQuery, batchRemaining } from "@/lib/queries";
 import { fmtDate, fmtMoney, fmtNum, fmtWeight } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
@@ -138,7 +138,6 @@ function BatchPage() {
       <div className="glass flex items-center gap-2 rounded-2xl p-3 text-sm text-muted-foreground">
         <FileText className="size-4" /> تُخصم الكمية والوزن من مخزون الدفعة تلقائياً عند كل بيع، وتُعاد عند إلغاء البيع أو حذفه.
       </div>
-      <Boxes className="hidden" />
       <BatchWeighingDialog open={weigh} onOpenChange={setWeigh} batchId={b.id} />
     </div>
   );

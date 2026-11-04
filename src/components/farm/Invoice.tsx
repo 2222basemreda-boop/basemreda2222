@@ -172,6 +172,16 @@ function esc(v: string | null | undefined) {
 export function buildInvoiceHtml(data: InvoiceData) {
   const rows = (items: [string, string][]) =>
     items.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join("");
+  const animalRows: [string, string][] = data.batch
+    ? [
+        ["الصنف", data.batch.label],
+        ["عدد العجول", fmtNum(data.batch.quantity)],
+        ...(data.batch.quantity > 1 ? [["متوسط وزن العجل", fmtWeight(data.weight / data.batch.quantity)] as [string, string]] : []),
+      ]
+    : [
+        ["رقم العجل", data.animal?.tag_number ?? "—"],
+        ["اللون", data.animal?.color ?? "—"],
+      ];
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8" />
 <title>${esc(data.invoice_number)} — ${FARM_NAME}</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet" />
@@ -212,16 +222,7 @@ th{background:rgba(241,247,243,.85);width:38%;font-weight:700}
   ])}</table>
 <h2>${esc(data.batch ? "بيانات الدفعة" : "بيانات العجل")}</h2>
 <table>${rows([
-    ...(data.batch
-      ? [
-          ["الصنف", data.batch.label],
-          ["عدد العجول", fmtNum(data.batch.quantity)],
-          ...(data.batch.quantity > 1 ? [["متوسط وزن العجل", fmtWeight(data.weight / data.batch.quantity)] as [string, string]] : []),
-        ]
-      : [
-          ["رقم العجل", data.animal?.tag_number ?? "—"],
-          ["اللون", data.animal?.color ?? "—"],
-        ]),
+    ...animalRows,
     ["الوزن", fmtWeight(data.weight)],
     ["سعر الكيلو", fmtMoney(data.price_per_kg)],
   ])}</table>
@@ -260,20 +261,21 @@ export function printInvoice(data: InvoiceData) {
 const CANVAS_WIDTH = 1000;
 
 function canvasRows(data: InvoiceData): [string, string][] {
+  const animalRows: [string, string][] = data.batch
+    ? [
+        ["الصنف", data.batch.label],
+        ["عدد العجول", fmtNum(data.batch.quantity)],
+        ...(data.batch.quantity > 1 ? [["متوسط وزن العجل", fmtWeight(data.weight / data.batch.quantity)] as [string, string]] : []),
+      ]
+    : [
+        ["رقم العجل", data.animal?.tag_number ?? "—"],
+        ["اللون", data.animal?.color ?? "—"],
+      ];
   return [
     ["اسم العميل", data.customer?.name ?? "—"],
     ["كود العميل", data.customer?.code ?? "—"],
     ["الهاتف", data.customer?.phone ?? "—"],
-    ...(data.batch
-      ? [
-          ["الصنف", data.batch.label],
-          ["عدد العجول", fmtNum(data.batch.quantity)],
-          ...(data.batch.quantity > 1 ? [["متوسط وزن العجل", fmtWeight(data.weight / data.batch.quantity)] as [string, string]] : []),
-        ]
-      : [
-          ["رقم العجل", data.animal?.tag_number ?? "—"],
-          ["اللون", data.animal?.color ?? "—"],
-        ]),
+    ...animalRows,
     ["الوزن", fmtWeight(data.weight)],
     ["سعر الكيلو", fmtMoney(data.price_per_kg)],
     ["الإجمالي", fmtMoney(data.base_total)],

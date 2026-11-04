@@ -40,8 +40,11 @@ function EmployeePage() {
 
   if (isLoading) return <Loading />;
   if (!data) return <EmptyState title="الموظف غير موجود" action={<Button asChild variant="outline"><Link to="/employees">العودة للموظفين</Link></Button>} />;
-  const { employee: e, balance: b, attendance, ledger, periods, leavePeriods } = data;
+  const { employee: e, balance: b, attendance, ledger, periods, leavePeriods, segment } = data;
   const canWrite = auth.can("employees.write");
+  // The 30-day cycle starts at the return-to-work date after each leave period; measure within the current cycle.
+  const segDays = segment?.segment_days ?? b.worked_days;
+  const daysLeft = daysToNextLeave(segDays);
 
   return (
     <div className="space-y-5">
@@ -73,7 +76,7 @@ function EmployeePage() {
           <StatTile label="تاريخ بدء العمل" value={fmtDate(b.start_date)} hint={`الحضور اليومي منذ ${fmtDate(b.attendance_start_date)}`} />
           <StatTile label="أيام عمل سابقة (تاريخية)" value={fmtNum(b.historical_days)} tone="muted" />
           <StatTile label="أيام حضور في التطبيق" value={fmtNum(b.attendance_days)} tone="muted" />
-          <StatTile label="إجمالي أيام العمل المكتملة" value={fmtNum(b.worked_days)} hint={`باقي ${daysToNextLeave(b.worked_days)} يوم للإجازة القادمة`} />
+          <StatTile label="إجمالي أيام العمل المكتملة" value={fmtNum(b.worked_days)} hint={`باقي ${daysLeft} يوم للإجازة القادمة (من تاريخ العودة ${segment?.segment_start ? fmtDate(segment.segment_start) : fmtDate(b.start_date)})`} />
           <StatTile label="الإجازات المكتسبة" value={`${fmtNum(b.earned_days)} يوم`} />
           <StatTile label="إجازات سابقة" value={`${fmtNum(b.prev_leave)} يوم`} tone="muted" />
           <StatTile label="تعويض نقدي سابق" value={`${fmtNum(b.prev_cash)} يوم`} tone="muted" />
@@ -81,7 +84,7 @@ function EmployeePage() {
           <StatTile label="تعويض نقدي عبر التطبيق" value={`${fmtNum(b.app_cash)} يوم`} tone="muted" />
           <StatTile label="الإجازات المأخوذة (إجمالي)" value={`${fmtNum(b.prev_leave + b.prev_cash + b.app_leave + b.app_cash)} يوم`} tone="muted" />
           <StatTile label="إجازة مقدّمة (سالب)" value={`${fmtNum(Math.max(0, -b.remaining))} يوم`} tone="muted" />
-          <StatTile label="الاستحقاق القادم (+4)" value={e.is_active ? fmtDate(nextAccrual(daysToNextLeave(b.worked_days))) : "متوقف"} hint={`بعد ${daysToNextLeave(b.worked_days)} يوم عمل (تقديري)`} />
+          <StatTile label="الاستحقاق القادم (+4)" value={e.is_active ? fmtDate(nextAccrual(daysLeft)) : "متوقف"} hint={`بعد ${daysLeft} يوم عمل (تقديري)`} />
           <StatTile label="آخر خروج / عودة" value={leavePeriods[0] ? fmtDate(leavePeriods[0].departure_date) : "—"} hint={leavePeriods[0] ? (leavePeriods[0].return_date ? `عاد ${fmtDate(leavePeriods[0].return_date)}` : "لم يعد بعد") : ""} />
           <StatTile label="الرصيد الحالي" value={<span dir="ltr">{fmtNum(b.remaining)} يوم</span>} tone="amber" />
         </div>

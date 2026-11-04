@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Truck, Search, Phone } from "lucide-react";
-import { animalsQuery, suppliersQuery, supplierPaymentsQuery, supplierStats } from "@/lib/queries";
+import { animalsQuery, suppliersQuery, supplierPaymentsQuery, supplierStats, batchesQuery } from "@/lib/queries";
 import { fmtMoney, fmtNum } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ function SuppliersPage() {
   const { data, isLoading } = useQuery(suppliersQuery);
   const animals = useQuery(animalsQuery).data ?? [];
   const payments = useQuery(supplierPaymentsQuery).data ?? [];
+  const batches = useQuery(batchesQuery).data ?? [];
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -49,7 +50,7 @@ function SuppliersPage() {
       ) : (
         <div className="grid gap-2 lg:grid-cols-2">
           {list.map((s) => {
-            const st = supplierStats(s.id, animals, payments);
+            const st = supplierStats(s.id, animals, payments, batches);
             return (
               <Link key={s.id} to="/suppliers/$id" params={{ id: s.id }} className="glass tap block rounded-2xl p-3 hover:bg-popover/80">
                 <div className="flex items-center gap-3">

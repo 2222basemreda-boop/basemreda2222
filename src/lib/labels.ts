@@ -53,4 +53,6 @@ export const ENTITY_LABELS: Record<string, string> = {
   employee_attendance: "حضور موظف",
   employee_periods: "فترة عمل موظف",
   leave_settlements: "تسوية إجازة",
+  calf_batches: "دفعة عجول حرة",
+  batch_weighings: "وزن دفعة",
 };

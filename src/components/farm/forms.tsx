@@ -617,7 +617,7 @@ export function SaleDialog({ open, onOpenChange, animal, initial }: DialogProps 
     if (!open) return;
     setF(
       initial
-        ? { animal_id: initial.animal_id, customer_id: initial.customer_id, weight: String(initial.weight), price_per_kg: String(initial.price_per_kg), sale_date: initial.sale_date, payment_status: initial.payment_status, paid_amount: String(initial.paid_amount ?? ""), worker_tip: String(initial.worker_tip ?? ""), transportation: String(initial.transportation ?? ""), slaughtering: String(initial.slaughtering ?? ""), notes: initial.notes ?? "" }
+        ? { animal_id: initial.animal_id ?? "", customer_id: initial.customer_id, weight: String(initial.weight), price_per_kg: String(initial.price_per_kg), sale_date: initial.sale_date, payment_status: initial.payment_status, paid_amount: String(initial.paid_amount ?? ""), worker_tip: String(initial.worker_tip ?? ""), transportation: String(initial.transportation ?? ""), slaughtering: String(initial.slaughtering ?? ""), notes: initial.notes ?? "" }
         : blank(),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Pencil, Wallet, Beef, Phone } from "lucide-react";
-import { animalsQuery, suppliersQuery, supplierPaymentsQuery, supplierStats, calfRemaining } from "@/lib/queries";
+import { Plus, Pencil, Wallet, Beef, Phone, Boxes } from "lucide-react";
+import { animalsQuery, suppliersQuery, supplierPaymentsQuery, supplierStats, calfRemaining, batchesQuery, batchRemaining } from "@/lib/queries";
 import { fmtDate, fmtMoney, fmtNum, fmtWeight } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -29,8 +29,10 @@ function SupplierPage() {
   const { data: suppliers, isLoading } = useQuery(suppliersQuery);
   const animals = useQuery(animalsQuery).data ?? [];
   const payments = useQuery(supplierPaymentsQuery).data ?? [];
+  const allBatches = useQuery(batchesQuery).data ?? [];
   const [edit, setEdit] = useState(false);
   const [addCalf, setAddCalf] = useState(false);
+  const [addBatch, setAddBatch] = useState(false);
   const [pay, setPay] = useState(false);
 
   if (isLoading) return <Loading />;
@@ -38,8 +40,9 @@ function SupplierPage() {
   if (!s) return <EmptyState title="المورد غير موجود" action={<Button asChild variant="outline"><Link to="/suppliers">العودة للموردين</Link></Button>} />;
 
   const calves = animals.filter((a) => a.supplier_id === id);
+  const myBatches = allBatches.filter((b) => b.supplier_id === id);
   const pays = payments.filter((p) => p.supplier_id === id);
-  const st = supplierStats(id, animals, payments);
+  const st = supplierStats(id, animals, payments, allBatches);
   const tagOf = (aid: string | null) => animals.find((a) => a.id === aid)?.tag_number;
 
   return (
@@ -51,6 +54,7 @@ function SupplierPage() {
           <div className="flex flex-wrap gap-2">
             {auth.can("suppliers.write") && <Button variant="outline" onClick={() => setEdit(true)}><Pencil /> تعديل</Button>}
             {auth.can("animals.write") && <Button variant="outline" onClick={() => setAddCalf(true)}><Plus /> إضافة عجل للمورد</Button>}
+            {auth.can("animals.write") && <Button variant="outline" onClick={() => setAddBatch(true)}><Boxes /> إضافة دفعة حرة</Button>}
             {auth.can("supplierPayments.write") && <Button onClick={() => setPay(true)}><Wallet /> تسجيل دفعة</Button>}
           </div>
         }
@@ -113,6 +117,37 @@ function SupplierPage() {
       </div>
 
       <div>
+        <SectionTitle>دفعات العجول الحرة ({fmtNum(myBatches.length)})</SectionTitle>
+        {myBatches.length === 0 ? <EmptyState icon={<Boxes />} title="لا توجد دفعات حرة لهذا المورد" /> : (
+          <div className="glass overflow-x-auto rounded-2xl">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead className="text-xs text-muted-foreground"><tr className="border-b border-border">
+                {["تاريخ الاستلام", "الحظيرة", "العدد المتبقي", "الوزن المتبقي", "إجمالي التكلفة", "المدفوع", "المتبقي", "الحالة"].map((h) => <th key={h} className="p-3 text-start font-medium">{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {myBatches.map((b) => {
+                  const r = batchRemaining(b);
+                  const depleted = b.remaining_quantity <= 0 || b.remaining_weight <= 0;
+                  return (
+                    <tr key={b.id} className="border-b border-border/50 last:border-0">
+                      <td className="p-3 font-bold"><Link to="/batches/$id" params={{ id: b.id }} className="text-brand underline-offset-2 hover:underline">{fmtDate(b.entry_date)}</Link></td>
+                      <td className="p-3">{b.barn?.name ?? "—"}</td>
+                      <td className="num p-3">{fmtNum(b.remaining_quantity)} / {fmtNum(b.quantity)}</td>
+                      <td className="num p-3">{fmtWeight(b.remaining_weight)}</td>
+                      <td className="num p-3">{fmtMoney(b.total_cost)}</td>
+                      <td className="num p-3">{fmtMoney(r.paid)}</td>
+                      <td className="num p-3 font-bold">{fmtMoney(r.remaining)}</td>
+                      <td className="p-3">{depleted ? <span className="rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground">نفدت</span> : <span className="rounded-full bg-available/15 px-3 py-1 text-xs font-bold text-available">متاحة</span>}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div>
         <SectionTitle action={auth.can("supplierPayments.write") && <Button size="sm" onClick={() => setPay(true)}><Plus /> دفعة</Button>}>المدفوعات</SectionTitle>
         {pays.length === 0 ? <EmptyState icon={<Wallet />} title="لا توجد مدفوعات مسجلة" /> : (
           <div className="space-y-2">
@@ -134,6 +169,7 @@ function SupplierPage() {
       {s.phone && <a href={`tel:${s.phone}`} className="sr-only"><Phone /></a>}
       <SupplierDialog open={edit} onOpenChange={setEdit} initial={s} />
       <AnimalDialog open={addCalf} onOpenChange={setAddCalf} defaultSupplierId={id} />
+      <AnimalDialog open={addBatch} onOpenChange={setAddBatch} defaultSupplierId={id} defaultKind="loose" />
       <SupplierPaymentDialog open={pay} onOpenChange={setPay} supplierId={id} calves={calves} />
     </div>
   );
