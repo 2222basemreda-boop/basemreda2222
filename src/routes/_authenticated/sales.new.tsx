@@ -101,7 +101,7 @@ function NewSalePage() {
   const total = invoiceTotal(baseTotal, f.worker_tip, f.transportation, f.slaughtering);
   const paid = Math.min(toNum(f.paid_amount) ?? 0, total || Number.POSITIVE_INFINITY);
   const remaining = Math.max(total - paid, 0);
-  const paymentStatus = total > 0 && paid >= total ? "paid" : paid > 0 ? "partial" : "unpaid";
+  const paymentStatus: "paid" | "partial" | "unpaid" = total > 0 && paid >= total ? "paid" : paid > 0 ? "partial" : "unpaid";
   const soldQty = kind === "batch" ? toNum(f.quantity) ?? 0 : 1;
   const avgWeight = soldQty > 0 ? (toNum(f.weight) ?? 0) / soldQty : null;
 
@@ -130,6 +130,7 @@ function NewSalePage() {
 
   const save = useMutation({
     mutationFn: async () => {
+      let animalId: string | null = null;
       if (kind === "batch") {
         const picked = (batches ?? []).find((b) => b.id === f.batch_id);
         if (!f.batch_id || !picked) throw new Error("اختر الدفعة المطلوب البيع منها");
@@ -144,7 +145,7 @@ function NewSalePage() {
         if (!f.sale_date) throw new Error("أدخل تاريخ البيع");
       } else {
         if (!f.animal_id) throw new Error(flow === "sale" ? "اختر العجل المطلوب بيعه" : "اختر العجل المطلوب حجزه");
-        const animalId: string = f.animal_id;
+        animalId = f.animal_id;
         const picked = (animals ?? []).find((a) => a.id === animalId);
         if (picked && picked.status !== "available") throw new Error(BUSY_MSG);
         if ((toNum(f.weight) ?? 0) <= 0) throw new Error("أدخل وزن العجل");
@@ -176,7 +177,7 @@ function NewSalePage() {
         const pricePerKg = toNum(f.price_per_kg);
         if (weight === null || pricePerKg === null) throw new Error("أدخل وزن العجل وسعر الكيلو");
         const { error: reserveError } = await supabase.rpc("reserve_animal_details", {
-          _animal_id: animalId,
+          _animal_id: animalId as string,
           _customer_id: customerId,
           _weight: weight,
           _price_per_kg: pricePerKg,

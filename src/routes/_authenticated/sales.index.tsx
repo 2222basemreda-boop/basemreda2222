@@ -49,7 +49,7 @@ function SalesPage() {
       <PageHeader
         title="المبيعات"
         subtitle={`${fmtNum(data?.length ?? 0)} عملية بيع`}
-        action={auth.can("sales.write") && <Button asChild><Link to="/sales/new" search={{}}><Plus /> بيع / حجز</Link></Button>}
+        action={auth.can("sales.write") && <Button asChild><Link to="/sales/new" search={{ batch: undefined }}><Plus /> بيع / حجز</Link></Button>}
       />
       <div className="mb-4 grid grid-cols-2 gap-2">
         <StatTile label="إجمالي المبيعات" value={fmtMoney(total)} />
@@ -59,7 +59,7 @@ function SalesPage() {
         <EmptyState
           icon={<Receipt />}
           title="لا توجد مبيعات بعد"
-          action={auth.can("sales.write") ? <Button asChild><Link to="/sales/new" search={{}}><CalendarCheck /> بيع / حجز</Link></Button> : undefined}
+          action={auth.can("sales.write") ? <Button asChild><Link to="/sales/new" search={{ batch: undefined }}><CalendarCheck /> بيع / حجز</Link></Button> : undefined}
         />
       ) : (
         <div className="space-y-2">
