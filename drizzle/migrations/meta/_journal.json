@@ -127,6 +127,13 @@
       "when": 1793595554830,
       "tag": "0017_leave_cycle_return_date",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793950941523,
+      "tag": "0018_fix_cancel_batch_sale_history",
+      "breakpoints": true
     }
   ]
 }
